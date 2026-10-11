@@ -11,7 +11,8 @@ import {
   ShieldCheck,
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandScreen, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { Image } from '@/components/ui/image';
@@ -133,7 +134,7 @@ export default function ProductionLineScreen() {
         </BrandEntrance>
 
         {activeOrganizationId && access.isLoading ? (
-          <ActivityIndicator className="my-8" color={BrandColors.forest} />
+          <BrandSpinner className="my-8" size="large" />
         ) : null}
 
         {activeOrganizationId && !access.isLoading && !access.canRecord && !access.canReview ? (
@@ -160,7 +161,7 @@ export default function ProductionLineScreen() {
             <BrandEntrance delay={180}>
               <BrandSurface className="mb-8 !p-0">
                 {reviewQueue.status === 'LoadingFirstPage' ? (
-                  <ActivityIndicator className="my-8" color={BrandColors.forest} />
+                  <BrandSpinner className="my-8" size="large" />
                 ) : reviewQueue.results.length === 0 ? (
                   <View className="items-center gap-3 px-6 py-10">
                     <ScanFace color={BrandColors.copy} size={30} />
@@ -227,7 +228,7 @@ export default function ProductionLineScreen() {
                         onPress={() => reviewQueue.loadMore(20)}
                       >
                         {reviewQueue.status === 'LoadingMore' ? (
-                          <ActivityIndicator color={BrandColors.forest} />
+                          <BrandSpinner />
                         ) : (
                           <ThemedText type="smallBold">{t('loadMore')}</ThemedText>
                         )}
@@ -281,7 +282,7 @@ export default function ProductionLineScreen() {
                       text={t('noOrganization')}
                     />
                   ) : referenceData === undefined ? (
-                    <ActivityIndicator color={BrandColors.forest} />
+                    <BrandSpinner />
                   ) : referenceData === null ? (
                     <SetupMessage
                       detail={t('configurationHelp')}
@@ -391,7 +392,7 @@ export default function ProductionLineScreen() {
                         onPress={handleCreate}
                       >
                         {isCreating ? (
-                          <ActivityIndicator color="white" />
+                          <BrandSpinner color="white" />
                         ) : (
                           <ArrowUpRight
                             color="white"
@@ -419,7 +420,7 @@ export default function ProductionLineScreen() {
             <BrandEntrance delay={270}>
               <BrandSurface className="mb-8 !p-0">
                 {records === undefined ? (
-                  <ActivityIndicator className="my-8" color={BrandColors.forest} />
+                  <BrandSpinner className="my-8" size="large" />
                 ) : records.length === 0 ? (
                   <View className="items-center gap-3 px-6 py-10">
                     <ClipboardCheck color={BrandColors.copy} size={30} />

@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { env, internalAction, internalMutation, mutation } from "./_generated/server";
+import { getCurrentSessionId } from "./mobileDevices";
 import { roleHasPermission } from "./permissions";
 import { getAuthUserOrThrow } from "./workspaceAccess";
 
@@ -183,6 +184,7 @@ export const registerPushToken = mutation({
     if (!EXPO_PUSH_TOKEN_PATTERN.test(args.token)) {
       throw new Error("Invalid Expo push token");
     }
+    const sessionId = (await getCurrentSessionId(ctx)) ?? undefined;
     const existing = await ctx.db
       .query("pushTokens")
       .withIndex("by_token", (q) => q.eq("token", args.token))
@@ -191,6 +193,7 @@ export const registerPushToken = mutation({
       await ctx.db.patch(existing._id, {
         userId: authUser._id,
         platform: args.platform,
+        sessionId,
         updatedAt: Date.now(),
       });
     } else {
@@ -198,6 +201,7 @@ export const registerPushToken = mutation({
         userId: authUser._id,
         token: args.token,
         platform: args.platform,
+        sessionId,
         updatedAt: Date.now(),
       });
     }

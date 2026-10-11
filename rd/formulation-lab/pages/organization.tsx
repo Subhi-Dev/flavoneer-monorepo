@@ -20,6 +20,7 @@ import {
   PencilLine,
   Plus,
   Shield,
+  Smartphone,
   Trash2,
   User,
   UserMinus,
@@ -126,6 +127,10 @@ function formatAction(
     "member.role_changed": { icon: ArrowLeftRight, key: "role_changed_action" },
     "member.removed": { icon: UserX, key: "member_removed_action" },
     "member.left": { icon: LogOut, key: "member_left_action" },
+    "member.device_signed_out": {
+      icon: Smartphone,
+      key: "member_device_signed_out_action",
+    },
     "invite.revoked": { icon: XCircle, key: "invite_revoked_action" },
   };
   const match = map[action];

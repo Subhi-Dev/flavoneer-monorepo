@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { encode } from "uqr";
 import { useOrganization } from "../../context/OrganizationContext";
 import { authClient } from "../../lib/auth-client";
+import MobileDevicesSection from "./MobileDevicesSection";
 
 interface Enrollment {
   expiresAt: number;
@@ -186,6 +187,8 @@ export default function MobileAppTab() {
           </p>
         </div>
       </div>
+
+      <MobileDevicesSection />
     </div>
   );
 }

@@ -22,8 +22,9 @@ import {
   Send,
 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -269,7 +270,7 @@ export default function ProductionLineRecordScreen() {
   if (record === undefined) {
     return (
       <ThemedView className="flex-1 items-center justify-center">
-        <ActivityIndicator color={BrandColors.forest} size="large" />
+        <BrandSpinner size="large" />
       </ThemedView>
     );
   }
@@ -521,7 +522,7 @@ export default function ProductionLineRecordScreen() {
                       onPress={confirmCode}
                     >
                       {blockingSaveState === 'saving' && blockingSaveAction === 'code' ? (
-                        <ActivityIndicator color="white" />
+                        <BrandSpinner color="white" />
                       ) : (
                         <CheckCircle2 color="white" size={19} />
                       )}
@@ -653,7 +654,7 @@ export default function ProductionLineRecordScreen() {
                         testID="submit-production-record-button"
                       >
                         {blockingSaveState === 'saving' && blockingSaveAction === 'submit' ? (
-                          <ActivityIndicator color="white" />
+                          <BrandSpinner color="white" />
                         ) : (
                           <Send color="white" size={19} />
                         )}

@@ -765,9 +765,27 @@ export default defineSchema({
     userId: v.string(), // Better Auth user ID
     token: v.string(),
     platform: v.union(v.literal("ios"), v.literal("android")),
+    // Better Auth session of the phone, so signing the phone out stops its alerts.
+    sessionId: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_token", ["token"])
+    .index("by_userId", ["userId"])
+    .index("by_sessionId", ["sessionId"]),
+
+  // Phones signed in to the mobile app. One row per Better Auth session, so
+  // each phone can be signed out on its own from Settings › Mobile app.
+  mobileDevices: defineTable({
+    sessionId: v.string(), // Better Auth session ID
+    userId: v.string(), // Better Auth user ID
+    platform: v.union(v.literal("ios"), v.literal("android")),
+    modelName: v.optional(v.string()),
+    osVersion: v.optional(v.string()),
+    appVersion: v.optional(v.string()),
+    createdAt: v.number(),
+    lastActiveAt: v.number(),
+  })
+    .index("by_sessionId", ["sessionId"])
     .index("by_userId", ["userId"]),
 
   // Manager-facing QC reporting facts. These rows mirror operational records

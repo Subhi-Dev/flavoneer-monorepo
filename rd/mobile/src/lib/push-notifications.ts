@@ -126,6 +126,11 @@ export async function unregisterPushNotifications(
   await SecureStore.deleteItemAsync(PUSH_TOKEN_STORAGE_KEY);
 }
 
+/** Forgets this device's token after the server dropped it, e.g. when the session was revoked. */
+export async function forgetPushToken() {
+  await SecureStore.deleteItemAsync(PUSH_TOKEN_STORAGE_KEY);
+}
+
 /** Opens the production record when the user taps a notification about it. */
 export function useNotificationNavigation(signedIn: boolean) {
   const router = useRouter();

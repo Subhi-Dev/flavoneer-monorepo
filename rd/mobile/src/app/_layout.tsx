@@ -25,6 +25,7 @@ import { OrganizationProvider } from '@/contexts/organization-context';
 import { ThemePreferenceProvider, useThemePreference } from '@/contexts/theme-preference-context';
 import { authClient, convex } from '@/lib/backend';
 import { useClarityScreenTracking, useClarityUser } from '@/lib/clarity';
+import { useMobileDeviceSession } from '@/lib/mobile-device';
 import { useNotificationNavigation, usePushNotificationRegistration } from '@/lib/push-notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -67,6 +68,7 @@ function LocalizedNavigator({
   const { language } = useLanguage();
   const direction = language === 'ar' ? 'rtl' : 'ltr';
   usePushNotificationRegistration(hasSession);
+  useMobileDeviceSession(hasSession);
   useNotificationNavigation(hasSession);
 
   return (

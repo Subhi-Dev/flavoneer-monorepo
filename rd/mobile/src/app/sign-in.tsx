@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import { Eye, EyeOff, LockKeyhole, QrCode } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,6 +13,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Image } from '@/components/ui/image';
@@ -221,7 +221,7 @@ export default function SignInScreen() {
                       }}
                     >
                       {isSubmitting ? (
-                        <ActivityIndicator color={theme.primaryText} size="small" />
+                        <BrandSpinner color={theme.primaryText} />
                       ) : (
                         <ThemedText
                           className="!text-[#FFFDF4] dark:!text-[#173E33]"

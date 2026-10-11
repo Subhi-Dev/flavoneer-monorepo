@@ -36,6 +36,7 @@ const APP_TABLES = [
   "productionLineRecordEvents",
   "productionLineRecordPhotos",
   "pushTokens",
+  "mobileDevices",
   "productionLineChecks",
   "productionLineReadings",
   "productionLineRecords",

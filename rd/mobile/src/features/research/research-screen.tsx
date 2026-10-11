@@ -3,8 +3,9 @@ import { usePaginatedQuery, useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { ChevronRight, FlaskConical, Leaf, ShieldCheck } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandScreen, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { Image } from '@/components/ui/image';
@@ -98,7 +99,7 @@ export default function ResearchScreen() {
 
         <BrandEntrance delay={170}>
           {organizationsLoading ? (
-            <ActivityIndicator className="my-10" color={BrandColors.forest} />
+            <BrandSpinner className="my-10" size="large" />
           ) : !activeOrganizationId ? (
             <BrandSurface className="mb-8 !p-0">
               <EmptyState
@@ -142,7 +143,7 @@ function FormulationList({ organizationId }: { organizationId: Id<'organizations
       </SectionHeading>
       <BrandSurface className="mb-8 !p-0">
         {status === 'LoadingFirstPage' ? (
-          <ActivityIndicator className="my-8" color={BrandColors.forest} />
+          <BrandSpinner className="my-8" size="large" />
         ) : formulations.length === 0 ? (
           <EmptyState
             detail={t('noFormulationsHelp')}
@@ -220,7 +221,7 @@ function MaterialList({ organizationId }: { organizationId: Id<'organizations'> 
       <SectionHeading count={materials?.length}>{t('materials')}</SectionHeading>
       <BrandSurface className="mb-8 !p-0">
         {materials === undefined ? (
-          <ActivityIndicator className="my-8" color={BrandColors.forest} />
+          <BrandSpinner className="my-8" size="large" />
         ) : materials.length === 0 ? (
           <EmptyState
             detail={t('noMaterialsHelp')}
@@ -316,7 +317,7 @@ function LoadMoreButton({ loading, onPress }: { loading: boolean; onPress: () =>
       disabled={loading}
       onPress={onPress}
     >
-      {loading ? <ActivityIndicator color={BrandColors.forest} size="small" /> : null}
+      {loading ? <BrandSpinner /> : null}
       <ThemedText type="smallBold">{t('loadMore')}</ThemedText>
     </Pressable>
   );

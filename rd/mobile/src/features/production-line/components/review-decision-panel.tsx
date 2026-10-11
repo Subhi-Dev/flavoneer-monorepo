@@ -3,7 +3,8 @@ import * as Sentry from '@sentry/react-native';
 import { useMutation } from 'convex/react';
 import { CircleAlert, CircleCheck, ScanFace, Undo2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts } from '@/constants/theme';
@@ -194,7 +195,7 @@ export function ReviewDecisionPanel({
           testID="return-production-record-button"
         >
           {pendingDecision === 'returned' ? (
-            <ActivityIndicator color={theme.primary} />
+            <BrandSpinner />
           ) : (
             <Undo2 color={theme.primary} size={19} />
           )}
@@ -211,7 +212,7 @@ export function ReviewDecisionPanel({
           testID="approve-production-record-button"
         >
           {pendingDecision === 'approved' ? (
-            <ActivityIndicator color={theme.primaryText} />
+            <BrandSpinner color={theme.primaryText} />
           ) : (
             <ScanFace color={theme.primaryText} size={19} />
           )}

@@ -1565,5 +1565,20 @@
   "mobile_enrollment_step_done": "يسجّل هاتفك الدخول إلى هذا الحساب ويفتح مساحة العمل الحالية.",
   "mobile_enrollment_expires_in": "ينتهي خلال {{time}}",
   "mobile_enrollment_refresh": "رمز جديد",
-  "mobile_enrollment_security_note": "كل رمز يعمل مرة واحدة وتنتهي صلاحيته بعد 5 دقائق. من يمسحه يسجّل الدخول بحسابك، فلا تشاركه."
+  "mobile_enrollment_security_note": "كل رمز يعمل مرة واحدة وتنتهي صلاحيته بعد 5 دقائق. من يمسحه يسجّل الدخول بحسابك، فلا تشاركه.",
+  "mobile_devices_title": "الهواتف المسجّل دخولها",
+  "mobile_devices_description": "لكل هاتف جلسة خاصة به. تسجيل خروج هاتف واحد لا يؤثر على هواتفك الأخرى ولا على هذا المتصفح.",
+  "mobile_devices_empty": "لا توجد هواتف مسجّل دخولها إلى حسابك.",
+  "mobile_devices_workspace_title": "هواتف مساحة العمل",
+  "mobile_devices_workspace_description": "الهواتف التي سجّل بها أعضاء آخرون في مساحة العمل هذه. سجّل خروج هاتف مفقود أو مشترك دون التأثير على أجهزة العضو الأخرى.",
+  "mobile_devices_workspace_empty": "لا يوجد أعضاء آخرون لديهم هاتف مسجّل دخوله.",
+  "mobile_devices_last_active": "آخر نشاط {{time}}",
+  "mobile_devices_app_version": "التطبيق {{version}}",
+  "mobile_devices_iphone": "آيفون",
+  "mobile_devices_android": "هاتف أندرويد",
+  "mobile_devices_sign_out": "تسجيل الخروج",
+  "mobile_devices_sign_out_confirm": "تسجيل خروج {{device}}؟ سيعود الهاتف إلى شاشة تسجيل الدخول ولن تصله الإشعارات.",
+  "mobile_devices_signed_out": "تم تسجيل خروج {{device}}.",
+  "mobile_devices_sign_out_failed": "تعذّر تسجيل خروج الهاتف. حاول مرة أخرى.",
+  "member_device_signed_out_action": "تم تسجيل خروج هاتف"
 }

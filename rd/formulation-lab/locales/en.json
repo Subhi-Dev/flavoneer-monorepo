@@ -1565,5 +1565,20 @@
   "mobile_enrollment_step_done": "Your phone signs in to this account and opens the current workspace.",
   "mobile_enrollment_expires_in": "Expires in {{time}}",
   "mobile_enrollment_refresh": "New code",
-  "mobile_enrollment_security_note": "Each code works once and expires after 5 minutes. Anyone who scans it is signed in as you, so don't share it."
+  "mobile_enrollment_security_note": "Each code works once and expires after 5 minutes. Anyone who scans it is signed in as you, so don't share it.",
+  "mobile_devices_title": "Signed-in phones",
+  "mobile_devices_description": "Each phone has its own session. Signing one out leaves your other phones and this browser signed in.",
+  "mobile_devices_empty": "No phones are signed in to your account.",
+  "mobile_devices_workspace_title": "Workspace phones",
+  "mobile_devices_workspace_description": "Phones signed in by other members of this workspace. Sign out a lost or shared phone without affecting the member's other devices.",
+  "mobile_devices_workspace_empty": "No other members have a phone signed in.",
+  "mobile_devices_last_active": "Last active {{time}}",
+  "mobile_devices_app_version": "App {{version}}",
+  "mobile_devices_iphone": "iPhone",
+  "mobile_devices_android": "Android phone",
+  "mobile_devices_sign_out": "Sign out",
+  "mobile_devices_sign_out_confirm": "Sign out {{device}}? The phone returns to the sign-in screen and stops receiving notifications.",
+  "mobile_devices_signed_out": "{{device}} was signed out.",
+  "mobile_devices_sign_out_failed": "The phone could not be signed out. Try again.",
+  "member_device_signed_out_action": "Phone Signed Out"
 }

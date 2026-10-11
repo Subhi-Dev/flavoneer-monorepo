@@ -4,7 +4,8 @@ import { useMutation } from 'convex/react';
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { Image } from '@/components/ui/image';
@@ -164,7 +165,7 @@ export function RecordPhotosSection({
               // biome-ignore lint/suspicious/noArrayIndexKey: placeholders have no identity.
               key={`uploading-${index}`}
             >
-              <ActivityIndicator color={theme.text} />
+              <BrandSpinner />
             </View>
           ))}
         </View>
@@ -183,7 +184,7 @@ export function RecordPhotosSection({
           onPress={handleAdd}
         >
           {uploadingCount > 0 ? (
-            <ActivityIndicator color={theme.text} size="small" />
+            <BrandSpinner />
           ) : (
             <ImagePlus color={theme.text} size={18} />
           )}

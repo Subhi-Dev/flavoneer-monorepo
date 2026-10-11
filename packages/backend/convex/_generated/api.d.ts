@@ -33,6 +33,8 @@ import type * as labSamples from "../labSamples.js";
 import type * as labTestResults from "../labTestResults.js";
 import type * as localization from "../localization.js";
 import type * as migrations from "../migrations.js";
+import type * as mobileDevices from "../mobileDevices.js";
+import type * as mobileEnrollment from "../mobileEnrollment.js";
 import type * as organizationAuditLogs from "../organizationAuditLogs.js";
 import type * as organizationInvites from "../organizationInvites.js";
 import type * as organizationMembers from "../organizationMembers.js";
@@ -102,6 +104,8 @@ declare const fullApi: ApiFromModules<{
   labTestResults: typeof labTestResults;
   localization: typeof localization;
   migrations: typeof migrations;
+  mobileDevices: typeof mobileDevices;
+  mobileEnrollment: typeof mobileEnrollment;
   organizationAuditLogs: typeof organizationAuditLogs;
   organizationInvites: typeof organizationInvites;
   organizationMembers: typeof organizationMembers;

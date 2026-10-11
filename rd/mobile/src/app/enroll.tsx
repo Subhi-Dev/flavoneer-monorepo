@@ -3,9 +3,10 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Camera, Check, QrCode, RotateCcw, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { ThemedText } from '@/components/themed-text';
 import { BrandColors } from '@/constants/theme';
 import {
@@ -132,7 +133,7 @@ export default function EnrollScreen() {
                 {permission ? (
                   <Camera color={BrandColors.ink} size={34} />
                 ) : (
-                  <ActivityIndicator color={BrandColors.ink} />
+                  <BrandSpinner color={BrandColors.ink} />
                 )}
               </View>
               <ThemedText className="text-center !text-white" type="section">
@@ -159,7 +160,7 @@ export default function EnrollScreen() {
           {state.status === 'redeeming' ? (
             <>
               <View className="size-20 items-center justify-center rounded-[28px] bg-[#F5A623]">
-                <ActivityIndicator color={BrandColors.ink} />
+                <BrandSpinner color={BrandColors.ink} />
               </View>
               <ThemedText className="text-center !text-white" type="section">
                 {t('enrollmentSigningIn')}

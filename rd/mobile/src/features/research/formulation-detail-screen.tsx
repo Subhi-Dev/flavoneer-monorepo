@@ -9,9 +9,10 @@ import {
   FlaskConical,
   Timer,
 } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -85,7 +86,7 @@ function FormulationDetail({ projectId }: { projectId: Id<'projects'> }) {
   const formulation = useQuery(api.projects.get, { id: projectId, language });
 
   if (formulation === undefined) {
-    return <ActivityIndicator className="my-16" color={BrandColors.forest} size="large" />;
+    return <BrandSpinner className="my-16" size="large" />;
   }
   if (formulation === null) {
     return <FormulationNotFound />;
@@ -278,7 +279,7 @@ function LabRuns({ projectId }: { projectId: Id<'projects'> }) {
       </View>
       <BrandSurface className="mb-6 !p-0">
         {sortedRuns === undefined ? (
-          <ActivityIndicator className="my-8" color={BrandColors.forest} />
+          <BrandSpinner className="my-8" size="large" />
         ) : sortedRuns.length === 0 ? (
           <EmptyState icon={<Timer color={BrandColors.copy} size={28} />} text={t('noLabRuns')} />
         ) : (

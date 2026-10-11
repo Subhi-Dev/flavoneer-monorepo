@@ -15,8 +15,9 @@ import {
   Sun,
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, Linking, Pressable, Switch, View } from 'react-native';
+import { Alert, AppState, Linking, Pressable, Switch, View } from 'react-native';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandScreen, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { UserAvatar } from '@/components/user-avatar';
@@ -50,6 +51,7 @@ export default function UserSettingsScreen() {
   const upsertSettings = useMutation(api.settings.upsert);
   const registerPushToken = useMutation(api.pushNotifications.registerPushToken);
   const unregisterPushToken = useMutation(api.pushNotifications.unregisterPushToken);
+  const unregisterCurrentDevice = useMutation(api.mobileDevices.unregisterCurrentDevice);
   const router = useRouter();
   const theme = useTheme();
   // App alerts are shared with the web lab and default to on.
@@ -76,6 +78,7 @@ export default function UserSettingsScreen() {
     try {
       // Best effort: a failure here must not block signing out.
       await unregisterPushNotifications(unregisterPushToken).catch(() => undefined);
+      await unregisterCurrentDevice({}).catch(() => undefined);
       const result = await authClient.signOut();
       if (result.error) {
         Alert.alert(t('signOutFailed'), t('tryAgain'));
@@ -240,7 +243,7 @@ export default function UserSettingsScreen() {
 
             <View className="mx-5 mb-5 gap-2">
               {organizationsLoading ? (
-                <ActivityIndicator color={theme.text} />
+                <BrandSpinner />
               ) : organizations.length === 0 ? (
                 <ThemedText themeColor="textSecondary" type="caption">
                   {t('noOrganization')}
@@ -376,7 +379,7 @@ export default function UserSettingsScreen() {
                 </ThemedText>
               </View>
               {isSavingAlerts || settings === undefined ? (
-                <ActivityIndicator color={theme.text} size="small" />
+                <BrandSpinner />
               ) : (
                 <Switch
                   accessibilityLabel={t('notifications')}
@@ -409,7 +412,7 @@ export default function UserSettingsScreen() {
             onPress={handleSignOut}
           >
             {isSigningOut ? (
-              <ActivityIndicator color={theme.text} size="small" />
+              <BrandSpinner />
             ) : (
               <LogOut
                 color={theme.text}
