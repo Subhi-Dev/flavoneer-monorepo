@@ -5,10 +5,6 @@ import { getAuthenticatedUserWithRole, getEffectivePermissions } from "./permiss
 import { userReturnValidator, userWithRoleReturnValidator } from "./validators";
 import { workspaceRoleHasFullAccess } from "./workspaceAccess";
 
-const CREATOR_EMAIL = "zeta.food@gmail.com";
-
-const normalizeEmail = (email: string | null | undefined) => email?.trim().toLowerCase() ?? "";
-
 /**
  * Mutation to sync the betterAuth user with the local users table.
  * Role assignments are stored on organization memberships, not users.
@@ -22,9 +18,6 @@ export const syncCurrentUser = mutation({
       return null;
     }
 
-    const normalizedEmail = normalizeEmail(authUser.email);
-    const isCreator = normalizedEmail === CREATOR_EMAIL;
-
     // Check if user already exists
     let localUser = await ctx.db
       .query("users")
@@ -35,13 +28,11 @@ export const syncCurrentUser = mutation({
       // Keep identity data current. The legacy users.roleId field is ignored.
       if (
         localUser.name !== (authUser.name ?? "") ||
-        localUser.email !== (authUser.email ?? "") ||
-        localUser.isCreator !== isCreator
+        localUser.email !== (authUser.email ?? "")
       ) {
         await ctx.db.patch(localUser._id, {
           name: authUser.name ?? "",
           email: authUser.email ?? "",
-          isCreator,
         });
         localUser = await ctx.db.get(localUser._id);
       }
@@ -50,7 +41,6 @@ export const syncCurrentUser = mutation({
         authUserId: authUser._id,
         name: authUser.name ?? "",
         email: authUser.email ?? "",
-        isCreator,
       });
 
       localUser = await ctx.db.get(userId);

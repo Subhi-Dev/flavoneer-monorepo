@@ -37,8 +37,8 @@ uses the `appVersion` policy, so an update only reaches builds with the same
 `version` in `app.config.ts`. Bump `version` whenever native code changes.
 
 Server URL, certificate, channel, and runtime version are embedded at build
-time. Builds made before this setup still poll the Convex Hot Updater endpoint
-and need a new native build to receive xprem updates.
+time. Builds made before this setup polled the Convex Hot Updater endpoint,
+which has been removed. They need a new native build to receive updates.
 
 Create the publish token file:
 
@@ -88,6 +88,20 @@ The Metro config injects matching debug IDs into bundles and source maps. The
 Sentry Expo config plugin adds the native EAS Build upload steps for Android and
 iOS. A missing or incorrect `SENTRY_PROJECT` or `SENTRY_AUTH_TOKEN` makes the
 upload fail instead of silently producing unsymbolicated errors.
+
+## Store submission
+
+Store icons, feature graphics, and screenshots (English and Arabic) are generated in `design/exports/app-store/`.
+The listing copy, App Privacy and Data safety answers, age and content ratings, and App Review notes are in
+[`design/STORE_SUBMISSION.md`](../../design/STORE_SUBMISSION.md). Update that file when a release adds a feature,
+permission, or SDK that collects data.
+
+The screenshot text comes from `src/locales/en.json` and `ar.json`. After changing a string that appears in a
+screenshot, regenerate the images from the repository root:
+
+```sh
+node design/scripts/build.mjs app-store
+```
 
 ## Shared Convex backend
 

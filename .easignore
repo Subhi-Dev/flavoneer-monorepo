@@ -1,0 +1,65 @@
+# EAS uploads the whole monorepo for rd/mobile builds. When this file exists,
+# EAS ignores every .gitignore, so the git ignore rules are repeated here.
+
+# --- from .gitignore files ---
+node_modules/
+.pnpm-store/
+.nuxt/
+.output/
+.nitro/
+.data/
+.cache/
+dist/
+dist-ssr/
+web-build/
+logs/
+*.log
+*.tsbuildinfo
+.DS_Store
+.idea/
+.vscode/
+.fleet/
+playwright-report/
+test-results/
+tmp/
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# --- rd/mobile ---
+rd/mobile/.expo/
+rd/mobile/ios/
+rd/mobile/android/
+rd/mobile/.kotlin/
+rd/mobile/expo-env.d.ts
+rd/mobile/example
+*.ipa
+*.apk
+*.aab
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+!rd/mobile/certs/certificate.pem
+.metro-health-check*
+
+# --- not needed for the mobile build ---
+# Keep each workspace package.json so pnpm's frozen lockfile still resolves.
+apps/landing/*
+!apps/landing/package.json
+apps/qc-floor/*
+!apps/qc-floor/package.json
+rd/formulation-lab/*
+!rd/formulation-lab/package.json
+
+.agents/
+.expo/
+.plan/
+.plans/
+design/
+docs/
+scripts/
+Dockerfile.*

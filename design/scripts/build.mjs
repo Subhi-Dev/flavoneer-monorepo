@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
 import { BRAND_DIR, C, MASCOT_FILE, MASCOT_PAN_FILE, dataUrl, markSvg, mascotWordmarkSvg, stripAlpha, toIco, wordmarkSvg } from "./lib.mjs";
-import { SCREENSHOTS, screenshot } from "./screens.mjs";
+import { SCREENSHOT_SETS, screenshot } from "./screens.mjs";
 import { avatar, cover, featureGraphic, openGraph, page, postFeature, postHero, postStat, story } from "./templates.mjs";
 
 const OUT = path.join(BRAND_DIR, "exports");
@@ -68,6 +68,9 @@ const square = (file, size, background) => async () => ({ html: svgPage(await re
 
 const html = (width, height, build) => () => ({ html: build({ width, height }), width, height });
 
+// English store files keep the original folder names; other listings get a language suffix.
+const suffix = (lang) => (lang === "en" ? "" : `-${lang}`);
+
 const rasters = {
   // Logo
   "logo/png/flavoneer-mark-1024.png": square("logo/svg/flavoneer-mark.svg", 1024),
@@ -86,12 +89,21 @@ const rasters = {
 
   // Apple App Store
   "app-store/ios/app-icon-1024.png": square("logo/svg/flavoneer-mark-tile.svg", 1024, C.mint),
-  ...Object.fromEntries(SCREENSHOTS.map((shot) => [`app-store/ios/screenshots-6.9in/${shot.id}-1320x2868.png`, html(1320, 2868, (size) => screenshot({ ...size, shot }))])),
+  ...Object.fromEntries(
+    Object.entries(SCREENSHOT_SETS).flatMap(([lang, shots]) =>
+      shots.map((shot) => [`app-store/ios/screenshots-6.9in${suffix(lang)}/${shot.id}-1320x2868.png`, html(1320, 2868, (size) => screenshot({ ...size, shot }))]),
+    ),
+  ),
 
   // Google Play
   "app-store/google-play/icon-512.png": square("logo/svg/flavoneer-mark-tile.svg", 512, C.mint),
-  "app-store/google-play/feature-graphic-1024x500.png": html(1024, 500, featureGraphic),
-  ...Object.fromEntries(SCREENSHOTS.map((shot) => [`app-store/google-play/phone-screenshots/${shot.id}-1080x1920.png`, html(1080, 1920, (size) => screenshot({ ...size, shot }))])),
+  "app-store/google-play/feature-graphic-1024x500.png": html(1024, 500, (size) => featureGraphic({ ...size, lang: "en" })),
+  "app-store/google-play/feature-graphic-ar-1024x500.png": html(1024, 500, (size) => featureGraphic({ ...size, lang: "ar" })),
+  ...Object.fromEntries(
+    Object.entries(SCREENSHOT_SETS).flatMap(([lang, shots]) =>
+      shots.map((shot) => [`app-store/google-play/phone-screenshots${suffix(lang)}/${shot.id}-1080x1920.png`, html(1080, 1920, (size) => screenshot({ ...size, shot }))]),
+    ),
+  ),
 
   // Social profile images
   "social/profile/avatar-mark-800.png": html(800, 800, ({ width }) => avatar({ size: width, variant: "mark" })),
@@ -124,8 +136,8 @@ const rasters = {
   "web/favicon-48.png": square("web/favicon.svg", 48),
 };
 
-// Icons with an alpha channel are rejected by App Store Connect.
-const OPAQUE = new Set(["app-store/ios/app-icon-1024.png", "app-store/google-play/icon-512.png", "web/apple-touch-icon-180.png"]);
+// App Store Connect rejects icons and screenshots with an alpha channel, and Google Play wants 24-bit PNGs.
+const OPAQUE = new Set([...Object.keys(rasters).filter((file) => file.startsWith("app-store/")), "web/apple-touch-icon-180.png"]);
 
 // Falls back to any cached headless shell when the pinned Playwright build is not downloaded.
 async function launchChromium() {

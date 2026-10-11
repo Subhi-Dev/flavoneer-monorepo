@@ -4,8 +4,6 @@ import {
   optionalString,
   optionalUrl,
   parseEnv,
-  requiredString,
-  requiredUrl,
   stringWithDefault,
   urlWithDefault,
 } from "./core";
@@ -49,35 +47,6 @@ export type BackendRegulatoryEnvSource = EnvInput<typeof backendRegulatoryEnvSch
 export function createBackendRegulatoryEnv(source: BackendRegulatoryEnvSource) {
   const env = parseEnv(backendRegulatoryEnvSchema, source);
   return Object.freeze({ importToken: env.REGULATORY_IMPORT_TOKEN });
-}
-
-const hotUpdaterStorageEnvSchema = {
-  HOT_UPDATER_API_TOKEN: requiredString(),
-  HOT_UPDATER_S3_ACCESS_KEY_ID: requiredString(),
-  HOT_UPDATER_S3_BASE_PATH: requiredString(),
-  HOT_UPDATER_S3_BUCKET: requiredString(),
-  HOT_UPDATER_S3_ENDPOINT: requiredUrl({ protocols: httpProtocols }),
-  HOT_UPDATER_S3_REGION: requiredString(),
-  HOT_UPDATER_S3_SECRET_ACCESS_KEY: requiredString(),
-};
-
-export type HotUpdaterBackendEnvSource = EnvInput<typeof hotUpdaterStorageEnvSchema>;
-
-function toHotUpdaterStorageEnv(source: HotUpdaterBackendEnvSource) {
-  const env = parseEnv(hotUpdaterStorageEnvSchema, source);
-  return {
-    apiToken: env.HOT_UPDATER_API_TOKEN,
-    s3AccessKeyId: env.HOT_UPDATER_S3_ACCESS_KEY_ID,
-    s3BasePath: env.HOT_UPDATER_S3_BASE_PATH,
-    s3Bucket: env.HOT_UPDATER_S3_BUCKET,
-    s3Endpoint: env.HOT_UPDATER_S3_ENDPOINT,
-    s3Region: env.HOT_UPDATER_S3_REGION,
-    s3SecretAccessKey: env.HOT_UPDATER_S3_SECRET_ACCESS_KEY,
-  } as const;
-}
-
-export function createHotUpdaterBackendEnv(source: HotUpdaterBackendEnvSource) {
-  return Object.freeze(toHotUpdaterStorageEnv(source));
 }
 
 const playwrightEnvSchema = {

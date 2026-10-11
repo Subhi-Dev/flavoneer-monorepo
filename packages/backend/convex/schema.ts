@@ -1,10 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
-  hotUpdaterBundleDocumentValidator,
-  hotUpdaterBundlePatchDocumentValidator,
-} from "./hotUpdaterValidators";
-import {
   auditLogMetaValidator,
   batchCodeFormatValidator,
   equipmentStatusValidator,
@@ -50,21 +46,6 @@ import {
 } from "./factoryLayoutValidators";
 
 export default defineSchema({
-  hotUpdaterBundles: defineTable(hotUpdaterBundleDocumentValidator)
-    .index("by_bundleId", ["bundleId"])
-    .index("by_channel_and_bundleId", ["channel", "bundleId"])
-    .index("by_platform_and_bundleId", ["platform", "bundleId"])
-    .index("by_platform_and_channel_and_bundleId", ["platform", "channel", "bundleId"]),
-
-  hotUpdaterBundlePatches: defineTable(hotUpdaterBundlePatchDocumentValidator).index(
-    "by_bundleId_and_baseBundleId",
-    ["bundleId", "baseBundleId"],
-  ),
-
-  hotUpdaterChannels: defineTable({
-    channel: v.string(),
-  }).index("by_channel", ["channel"]),
-
   projects: defineTable({
     name: v.string(),
     nameI18n: v.optional(localizedStringValidator),
@@ -157,8 +138,12 @@ export default defineSchema({
     email: v.optional(v.string()),
     // @deprecated: role assignments now live on organization memberships.
     roleId: v.optional(v.id("roles")),
+    // @deprecated: superseded by isSuperAdmin. Kept so existing documents still validate.
     isCreator: v.optional(v.boolean()),
-  }).index("by_authUserId", ["authUserId"]),
+    isSuperAdmin: v.optional(v.boolean()),
+  })
+    .index("by_authUserId", ["authUserId"])
+    .index("by_email", ["email"]),
 
   // ─── Approval Workflow Comments ───────────────────
   comments: defineTable({

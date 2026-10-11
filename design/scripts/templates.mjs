@@ -180,8 +180,13 @@ export function avatar({ size, variant }) {
   return page({ width: size, height: size, body });
 }
 
-export function featureGraphic({ width = 1024, height = 500 }) {
-  return cover({ width, height, safe: { x: 24, y: 70, w: width - 24, h: 360 }, tagline: "Food R&amp;D and production quality in one app" });
+const FEATURE_TAGLINES = {
+  en: "Hourly quality checks for food production lines",
+  ar: '<span class="ar" dir="rtl" style="font-size:.86em;white-space:nowrap">فحوصات الجودة الساعية لخطوط الإنتاج</span>',
+};
+
+export function featureGraphic({ width = 1024, height = 500, lang = "en" }) {
+  return cover({ width, height, safe: { x: 24, y: 70, w: width - 24, h: 360 }, tagline: FEATURE_TAGLINES[lang] });
 }
 
 export function openGraph({ width = 1200, height = 630 }) {

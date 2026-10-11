@@ -49,7 +49,7 @@ export function usePermissions() {
     hasPermission,
     isOrganizationAdmin: workspaceRole === "owner" || workspaceRole === "admin",
     role,
-    isCreator: currentUserWithRole.isCreator === true,
+    isSuperAdmin: currentUserWithRole.isSuperAdmin === true,
     user: currentUserWithRole,
     workspaceRole,
   };

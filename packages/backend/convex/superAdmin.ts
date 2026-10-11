@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import {
   getSuperAdminIdentity,
   requireSuperAdmin,
@@ -44,6 +44,46 @@ export const getAccess = query({
   args: {},
   returns: v.object({ isSuperAdmin: v.boolean() }),
   handler: async (ctx) => ({ isSuperAdmin: (await getSuperAdminIdentity(ctx)) !== null }),
+});
+
+/**
+ * Grants or revokes super admin access. Internal so it can only be run from the
+ * Convex dashboard or CLI, e.g.
+ * `npx convex run superAdmin:setUserSuperAdmin '{"email":"a@b.com","enabled":true}'`.
+ * The user must have signed in at least once so their users row exists.
+ */
+export const setUserSuperAdmin = internalMutation({
+  args: { email: v.string(), enabled: v.boolean() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    const users = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .take(2);
+    if (users.length === 0) {
+      throw new Error(`No user found with email ${email}. They must sign in once first.`);
+    }
+    if (users.length > 1) {
+      throw new Error(`Multiple users found with email ${email}`);
+    }
+    const user = users[0];
+    if ((user.isSuperAdmin === true) === args.enabled) {
+      return null;
+    }
+    await ctx.db.patch(user._id, { isSuperAdmin: args.enabled });
+    await ctx.db.insert("platformAuditLogs", {
+      action: args.enabled ? "super_admin.granted" : "super_admin.revoked",
+      targetType: "user",
+      targetId: user._id,
+      targetLabel: user.email ?? email,
+      summary: args.enabled ? "Super admin access granted" : "Super admin access revoked",
+      actorId: "system",
+      actorName: "Convex CLI",
+      createdAt: Date.now(),
+    });
+    return null;
+  },
 });
 
 export const getOverview = query({
