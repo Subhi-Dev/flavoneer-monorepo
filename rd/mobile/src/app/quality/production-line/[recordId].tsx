@@ -1,6 +1,7 @@
 import type { Id } from '@flavoneer/backend/data-model';
 import {
   getProductionLineSubmissionReadiness,
+  PRODUCTION_LINE_CHECK_KEYS,
   type ProductionLineCheckKey,
   type ProductionLineReadingKey,
 } from '@flavoneer/backend/production-line';
@@ -29,6 +30,8 @@ import { ThemedView } from '@/components/themed-view';
 import { Image } from '@/components/ui/image';
 import { BrandColors, Fonts } from '@/constants/theme';
 import { BatchLabelCamera } from '@/features/production-line/components/batch-label-camera';
+import { RecordPhotosSection } from '@/features/production-line/components/record-photos';
+import { ReviewDecisionPanel } from '@/features/production-line/components/review-decision-panel';
 import {
   type ProductionLineTranslationKey,
   useProductionLineI18n,
@@ -38,6 +41,7 @@ import {
   BatchLabelPhotoUploadError,
   uploadBatchLabelPhoto,
 } from '@/features/production-line/photo-upload';
+import { useProductionLineAccess } from '@/features/production-line/use-production-line-access';
 import { api } from '@/lib/backend';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'failed';
@@ -46,9 +50,12 @@ type BlockingSaveAction = Extract<SaveAction, 'code' | 'photo' | 'submit'>;
 
 export default function ProductionLineRecordScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ recordId?: string }>();
+  const params = useLocalSearchParams<{ recordId?: string; review?: string }>();
   const recordId = params.recordId as Id<'productionLineRecords'> | undefined;
+  // Opened from the review queue: the reviewer never edits the inspection, even after returning it.
+  const isReviewMode = params.review === '1';
   const { isRTL, language, t } = useProductionLineI18n();
+  const { canReview } = useProductionLineAccess();
   const network = useNetworkState();
   const isConnected = network.isConnected !== false && network.isInternetReachable !== false;
   const record = useQuery(api.productionLineRecords.get, recordId ? { recordId } : 'skip');
@@ -108,7 +115,9 @@ export default function ProductionLineRecordScreen() {
 
   const batchCode = batchCodeDraft ?? record?.printedBatchCode ?? '';
   const matchesPhoto = matchesPhotoDraft ?? Boolean(record?.batchLabelConfirmedAt);
-  const isEditable = Boolean(record && ['draft', 'returned'].includes(record.status));
+  const isEditable = Boolean(
+    !isReviewMode && record && ['draft', 'returned'].includes(record.status),
+  );
   const displayedSaveState: SaveState =
     blockingSaveState === 'saving' || blockingSaveState === 'failed'
       ? blockingSaveState
@@ -567,73 +576,110 @@ export default function ProductionLineRecordScreen() {
               />
             </BrandEntrance>
 
-            <BrandEntrance delay={270}>
-              <BrandSurface className="mb-7 gap-5">
-                <View>
-                  <ThemedText themeColor="textSecondary" type="overline">
-                    {t('reviewSubmission')}
-                  </ThemedText>
-                  <ThemedText className="mt-2" type="section">
-                    {isEditable ? t('submitForReview') : t('formLocked')}
-                  </ThemedText>
-                  <ThemedText className="mt-2" themeColor="textSecondary" type="small">
-                    {isEditable ? t('submitForReviewHelp') : t('formLockedHelp')}
-                  </ThemedText>
-                </View>
+            {recordId ? (
+              <BrandEntrance delay={240}>
+                <RecordPhotosSection
+                  disabled={!isConnected}
+                  editable={isEditable}
+                  photos={record.photos}
+                  recordId={recordId}
+                  t={t}
+                />
+              </BrandEntrance>
+            ) : null}
 
-                {isEditable ? (
-                  <>
-                    <View
-                      className={`rounded-[18px] p-4 ${
-                        canSubmitForReview
-                          ? 'bg-[#E8F7ED] dark:bg-[#247A51]/15'
-                          : 'bg-[#FFF0C7] dark:bg-[#8A5811]/20'
-                      }`}
-                    >
-                      <ThemedText type="caption">
-                        {canSubmitForReview ? t('readyForReview') : t('submissionIncomplete')}
-                      </ThemedText>
-                    </View>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityState={{
-                        disabled:
-                          !isConnected || !canSubmitForReview || blockingSaveState === 'saving',
-                      }}
-                      className={`min-h-[58px] flex-row items-center justify-center gap-2 rounded-[19px] bg-[#1C4A3C] active:scale-[0.98] dark:bg-[#F5A623] ${
-                        !isConnected || !canSubmitForReview || blockingSaveState === 'saving'
-                          ? 'opacity-50'
-                          : ''
-                      }`}
-                      disabled={
-                        !isConnected || !canSubmitForReview || blockingSaveState === 'saving'
-                      }
-                      onPress={submitForReview}
-                      testID="submit-production-record-button"
-                    >
-                      {blockingSaveState === 'saving' && blockingSaveAction === 'submit' ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <Send color="white" size={19} />
-                      )}
-                      <ThemedText className="!text-white dark:!text-[#173E33]" type="smallBold">
-                        {blockingSaveState === 'saving' && blockingSaveAction === 'submit'
-                          ? t('submittingForReview')
-                          : t('submitForReview')}
-                      </ThemedText>
-                    </Pressable>
-                  </>
-                ) : (
-                  <View className="flex-row items-center gap-3 rounded-[18px] bg-[#E8F7ED] p-4 dark:bg-[#247A51]/15">
-                    <CheckCircle2 color="#247A51" size={20} />
-                    <ThemedText className="min-w-0 flex-1" type="smallBold">
-                      {record.status === 'pending_production_review'
-                        ? t('submittedForReview')
-                        : t('formLocked')}
+            <BrandEntrance delay={270}>
+              {canReview && record.status === 'pending_production_review' && recordId ? (
+                <ReviewDecisionPanel
+                  connected={isConnected}
+                  displaySerial={record.displaySerial}
+                  isRTL={isRTL}
+                  onDecided={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+                  qcUserName={record.qcUserName}
+                  recordId={recordId}
+                  summary={{
+                    checksCompleted: record.checks.filter((check) => check.checked).length,
+                    checksTotal: PRODUCTION_LINE_CHECK_KEYS.length,
+                    printedBatchCode: record.batchLabelConfirmedAt
+                      ? record.printedBatchCode
+                      : undefined,
+                    readingsOutsideRange: record.readings.filter((reading) => !reading.withinLimit)
+                      .length,
+                  }}
+                  t={t}
+                />
+              ) : (
+                <BrandSurface className="mb-7 gap-5">
+                  <View>
+                    <ThemedText themeColor="textSecondary" type="overline">
+                      {t('reviewSubmission')}
+                    </ThemedText>
+                    <ThemedText className="mt-2" type="section">
+                      {isEditable ? t('submitForReview') : t('formLocked')}
+                    </ThemedText>
+                    <ThemedText className="mt-2" themeColor="textSecondary" type="small">
+                      {isEditable ? t('submitForReviewHelp') : t('formLockedHelp')}
                     </ThemedText>
                   </View>
-                )}
-              </BrandSurface>
+
+                  {isEditable ? (
+                    <>
+                      <View
+                        className={`rounded-[18px] p-4 ${
+                          canSubmitForReview
+                            ? 'bg-[#E8F7ED] dark:bg-[#247A51]/15'
+                            : 'bg-[#FFF0C7] dark:bg-[#8A5811]/20'
+                        }`}
+                      >
+                        <ThemedText type="caption">
+                          {canSubmitForReview ? t('readyForReview') : t('submissionIncomplete')}
+                        </ThemedText>
+                      </View>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{
+                          disabled:
+                            !isConnected || !canSubmitForReview || blockingSaveState === 'saving',
+                        }}
+                        className={`min-h-[58px] flex-row items-center justify-center gap-2 rounded-[19px] bg-[#1C4A3C] active:scale-[0.98] dark:bg-[#F5A623] ${
+                          !isConnected || !canSubmitForReview || blockingSaveState === 'saving'
+                            ? 'opacity-50'
+                            : ''
+                        }`}
+                        disabled={
+                          !isConnected || !canSubmitForReview || blockingSaveState === 'saving'
+                        }
+                        onPress={submitForReview}
+                        testID="submit-production-record-button"
+                      >
+                        {blockingSaveState === 'saving' && blockingSaveAction === 'submit' ? (
+                          <ActivityIndicator color="white" />
+                        ) : (
+                          <Send color="white" size={19} />
+                        )}
+                        <ThemedText className="!text-white dark:!text-[#173E33]" type="smallBold">
+                          {blockingSaveState === 'saving' && blockingSaveAction === 'submit'
+                            ? t('submittingForReview')
+                            : t('submitForReview')}
+                        </ThemedText>
+                      </Pressable>
+                    </>
+                  ) : (
+                    <View className="flex-row items-center gap-3 rounded-[18px] bg-[#E8F7ED] p-4 dark:bg-[#247A51]/15">
+                      <CheckCircle2 color="#247A51" size={20} />
+                      <ThemedText className="min-w-0 flex-1" type="smallBold">
+                        {record.status === 'pending_production_review'
+                          ? t('submittedForReview')
+                          : record.status === 'approved'
+                            ? t('recordApproved')
+                            : record.status === 'returned'
+                              ? t('recordReturned')
+                              : t('formLocked')}
+                      </ThemedText>
+                    </View>
+                  )}
+                </BrandSurface>
+              )}
             </BrandEntrance>
           </View>
         </ScrollView>

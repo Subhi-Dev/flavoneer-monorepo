@@ -27,6 +27,7 @@ import type { DataModel } from "./dataModel.js";
 type Env = {
   readonly BETTER_AUTH_URL: string | undefined;
   readonly CONVEX_SITE_URL: string | undefined;
+  readonly EXPO_ACCESS_TOKEN: string | undefined;
   readonly INVITATION_EMAIL_WEBHOOK_SECRET: string | undefined;
   readonly INVITATION_EMAIL_WEBHOOK_URL: string | undefined;
   readonly MOBILE_SITE_URL: string | undefined;

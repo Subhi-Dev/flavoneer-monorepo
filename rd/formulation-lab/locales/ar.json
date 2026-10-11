@@ -1157,6 +1157,8 @@
   "back_to_records": "العودة إلى السجلات",
   "evidence_not_captured": "لم يتم تصوير دليل بطاقة الكرتونة.",
   "evidence_confirmed_by_qc": "تم تأكيد الصورة والرمز المطبوع من فاحص الجودة.",
+  "production_photos": "صور الإنتاج",
+  "production_photo_alt": "صورة الإنتاج {{number}}",
   "parsed_batch_data": "بيانات الدفعة المحللة",
   "daily_batch_sequence": "تسلسل دفعة اليوم",
   "production_date": "تاريخ الإنتاج",
@@ -1552,5 +1554,16 @@
   "visible": "ظاهر",
   "color": "اللون",
   "scale": "المقياس",
-  "rotation": "الدوران"
+  "rotation": "الدوران",
+  "mobile_app": "تطبيق الجوال",
+  "mobile_enrollment_title": "تسجيل الدخول على هاتفك",
+  "mobile_enrollment_description": "امسح هذا الرمز بتطبيق Flavoneer على الجوال لتسجيل الدخول دون كتابة كلمة المرور.",
+  "mobile_enrollment_qr_label": "رمز QR لتسجيل الدخول إلى تطبيق Flavoneer على الجوال",
+  "mobile_enrollment_failed": "تعذّر إنشاء الرمز. حاول مرة أخرى.",
+  "mobile_enrollment_step_open": "افتح تطبيق Flavoneer على هاتفك.",
+  "mobile_enrollment_step_scan": "في شاشة تسجيل الدخول، اضغط على \"مسح رمز QR\" ووجّه الكاميرا نحو هذا الرمز.",
+  "mobile_enrollment_step_done": "يسجّل هاتفك الدخول إلى هذا الحساب ويفتح مساحة العمل الحالية.",
+  "mobile_enrollment_expires_in": "ينتهي خلال {{time}}",
+  "mobile_enrollment_refresh": "رمز جديد",
+  "mobile_enrollment_security_note": "كل رمز يعمل مرة واحدة وتنتهي صلاحيته بعد 5 دقائق. من يمسحه يسجّل الدخول بحسابك، فلا تشاركه."
 }

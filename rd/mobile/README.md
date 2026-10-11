@@ -89,6 +89,56 @@ Sentry Expo config plugin adds the native EAS Build upload steps for Android and
 iOS. A missing or incorrect `SENTRY_PROJECT` or `SENTRY_AUTH_TOKEN` makes the
 upload fail instead of silently producing unsymbolicated errors.
 
+## Record approval with Face ID
+
+Users with the `review_production_checks` permission (Production Manager or Admin) see an "Awaiting review"
+list on the Quality screen. Approving or returning a record calls `productionLineRecords.review` only after
+`expo-local-authentication` confirms the device owner with Face ID, Touch ID, fingerprint, or the device
+passcode. Returning a record requires a review note. Devices with no biometrics and no passcode cannot review.
+
+Test this on a physical phone with a development or release build. Expo Go cannot show the Face ID prompt for
+this app, because `NSFaceIDUsageDescription` comes from the native build. To test both paths with one account,
+use the Admin role: submit a record, then approve or return it from "Awaiting review".
+
+## Push notifications
+
+The app registers an Expo push token after sign-in, when the user's "app alerts" setting is on (the same
+`userSettings.appAlerts` flag the web lab uses; it defaults to on). The permission prompt appears once, after the
+first sign-in. The notifications switch in Settings changes that flag and asks for permission again if needed.
+Signing out removes the device's token.
+
+The backend (`packages/backend/convex/pushNotifications.ts`) sends through the Expo push service:
+
+- `productionLineRecords.submitForReview` notifies every member who may review records
+  (`review_production_checks`, owners, and admins), except the submitter.
+- `productionLineRecords.review` notifies the inspector who owns the record that it was approved or returned,
+  with the review note.
+
+Messages use the recipient's saved language. Tapping a notification opens the record. Tokens that Expo reports
+as `DeviceNotRegistered` are deleted.
+
+One-time setup before a release build:
+
+1. iOS: run `eas credentials -p ios` (or let the first `eas build` do it) and create a push key. EAS uploads the
+   APNs key to Expo.
+2. Android: create a Firebase project with an Android app for `com.flavoneer.mobile`, download
+   `google-services.json`, and store it as a file variable:
+   `eas env:create --environment production --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json`.
+   `app.config.ts` reads it into `android.googleServicesFile`. Then upload an FCM V1 service account key with
+   `eas credentials -p android`. Repeat for the `development` and `preview` environments to test there.
+3. Optional: if enhanced push security is turned on for the Expo project, set `EXPO_ACCESS_TOKEN` on the Convex
+   deployment (`npx convex env set EXPO_ACCESS_TOKEN ...`).
+
+Push notifications need a development or release build on a physical device. Simulators cannot get a token.
+
+## Production photos
+
+Inspectors can attach up to 10 optional photos from the photo library to a draft or returned record
+(`productionLineRecords.attachRecordPhoto` and `removeRecordPhoto`). The app uses the system photo picker, which
+needs no photo library permission on Android and none on iOS 14 or later. Photos are resized to 1600 px wide JPEGs
+before upload, like the carton label. The carton label itself stays camera-only. Photos lock with the record when
+it is submitted for review.
+
 ## Store submission
 
 Store icons, feature graphics, and screenshots (English and Arabic) are generated in `design/exports/app-store/`.
@@ -124,6 +174,12 @@ pnpm dev:backend
 The active organization is selected from user settings. The app persists the
 matching organization ID in SecureStore and uses it for production queries after the
 user returns to the production screen.
+
+The workspace section switcher opens Research & Development at `/` and Quality control at `/quality`. The R&D
+section is read-only: it lists the active organization's formulations (`projects.listByOrganization`) and
+materials (`ingredients.list`), and `/research/formulations/[projectId]` shows a formulation's figures,
+ingredient breakdown, allergens, and lab runs (`projects.get`, `runs.getByProject`). Formulations are created and
+edited in the formulation lab, so testing this section needs a workspace with at least one formulation.
 
 Appearance is also a per-user Convex setting shared with the formulation lab.
 `ThemePreferenceProvider` supports Light, Dark, and System. System follows the

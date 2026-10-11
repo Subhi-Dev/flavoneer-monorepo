@@ -1,4 +1,5 @@
-import { Eye, EyeOff, LockKeyhole } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Eye, EyeOff, LockKeyhole, QrCode } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,6 +24,7 @@ import { authClient } from '@/lib/backend';
 
 export default function SignInScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { isRTL, t } = useProductionLineI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -228,6 +230,17 @@ export default function SignInScreen() {
                           {t('signIn')}
                         </ThemedText>
                       )}
+                    </Pressable>
+
+                    <Pressable
+                      accessibilityRole="button"
+                      className={`min-h-[56px] flex-row items-center justify-center gap-2 rounded-[19px] border active:scale-[0.98] ${isSubmitting ? 'opacity-[0.55]' : ''}`}
+                      disabled={isSubmitting}
+                      onPress={() => router.push('/enroll')}
+                      style={{ borderColor: theme.border }}
+                    >
+                      <QrCode color={theme.text} size={19} />
+                      <ThemedText type="smallBold">{t('signInWithQrCode')}</ThemedText>
                     </Pressable>
                   </View>
                 </View>

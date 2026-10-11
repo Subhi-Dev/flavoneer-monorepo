@@ -46,6 +46,7 @@ import type * as productionLineSpecifications from "../productionLineSpecificati
 import type * as projectIngredients from "../projectIngredients.js";
 import type * as projectVersions from "../projectVersions.js";
 import type * as projects from "../projects.js";
+import type * as pushNotifications from "../pushNotifications.js";
 import type * as qualityManagerReports from "../qualityManagerReports.js";
 import type * as qualityReportConfigurations from "../qualityReportConfigurations.js";
 import type * as qualityReportMetrics from "../qualityReportMetrics.js";
@@ -114,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   projectIngredients: typeof projectIngredients;
   projectVersions: typeof projectVersions;
   projects: typeof projects;
+  pushNotifications: typeof pushNotifications;
   qualityManagerReports: typeof qualityManagerReports;
   qualityReportConfigurations: typeof qualityReportConfigurations;
   qualityReportMetrics: typeof qualityReportMetrics;

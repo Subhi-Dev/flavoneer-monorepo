@@ -1157,6 +1157,8 @@
   "back_to_records": "Back to records",
   "evidence_not_captured": "Carton-label evidence has not been captured.",
   "evidence_confirmed_by_qc": "Photo and printed code confirmed by QC.",
+  "production_photos": "Production photos",
+  "production_photo_alt": "Production photo {{number}}",
   "parsed_batch_data": "Parsed batch data",
   "daily_batch_sequence": "Daily batch sequence",
   "production_date": "Production date",
@@ -1552,5 +1554,16 @@
   "visible": "Visible",
   "color": "Color",
   "scale": "Scale",
-  "rotation": "Rotation"
+  "rotation": "Rotation",
+  "mobile_app": "Mobile app",
+  "mobile_enrollment_title": "Sign in on your phone",
+  "mobile_enrollment_description": "Scan this code with the Flavoneer mobile app to sign in without typing your password.",
+  "mobile_enrollment_qr_label": "QR code for signing in to the Flavoneer mobile app",
+  "mobile_enrollment_failed": "The code could not be created. Try again.",
+  "mobile_enrollment_step_open": "Open the Flavoneer app on your phone.",
+  "mobile_enrollment_step_scan": "On the sign-in screen, tap \"Scan QR code\" and point the camera at this code.",
+  "mobile_enrollment_step_done": "Your phone signs in to this account and opens the current workspace.",
+  "mobile_enrollment_expires_in": "Expires in {{time}}",
+  "mobile_enrollment_refresh": "New code",
+  "mobile_enrollment_security_note": "Each code works once and expires after 5 minutes. Anyone who scans it is signed in as you, so don't share it."
 }

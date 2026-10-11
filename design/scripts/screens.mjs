@@ -239,9 +239,156 @@ ${recordHeader(lang)}
 </div>`;
 }
 
+const icon = (paths, color, size = 19) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths.map((d) => `<path d="${d}"/>`).join("")}</svg>`;
+const SCAN_FACE = ["M3 7V5a2 2 0 0 1 2-2h2", "M17 3h2a2 2 0 0 1 2 2v2", "M21 17v2a2 2 0 0 1-2 2h-2", "M7 21H5a2 2 0 0 1-2-2v-2", "M8 14s1.5 2 4 2 4-2 4-2", "M9 9h.01", "M15 9h.01"];
+const REVIEW_CHECK = ["M22 12a10 10 0 1 1-20 0a10 10 0 1 1 20 0", "m9 12 2 2 4-4"];
+const UNDO = ["M9 14 4 9l5-5", "M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"];
+
+/** Reviewer's view of a pending record (ReviewDecisionPanel in the app) with the system Face ID prompt on top. */
+function approvalScreen(lang) {
+  const t = translator(lang);
+  const ar = lang === "ar";
+  const cls = ar ? "ar" : "";
+  const s = SAMPLE[lang];
+  const inspector = ar ? "سارة حدّاد" : "Sara Haddad";
+  const summaryRow = (label, value) => `
+    <div style="display:flex;align-items:center;gap:10px">
+      ${icon(REVIEW_CHECK, GREEN, 18)}
+      <span class="${cls}" style="flex:1;font-size:14px;font-weight:700">${label}</span>
+      <span class="${cls}" style="font-size:12px">${value}</span>
+    </div>`;
+  const contextPill = (text) =>
+    `<span class="${cls}" style="border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.1);padding:6px 11px;font-size:12px;color:#E1EEE6;white-space:nowrap">${text}</span>`;
+  return `
+${statusBar()}
+<div style="display:flex;align-items:center;gap:12px;padding:6px 20px 0">
+  <span style="flex:none;width:44px;height:44px;border-radius:999px;border:1px solid rgba(28,74,60,.1);background:${C.cream};display:grid;place-items:center">${icon([ar ? "m9 18 6-6-6-6" : "m15 18-6-6 6-6"], C.copy, 20)}</span>
+  ${tile(40)}
+  <div style="flex:1;min-width:0">
+    <div class="display" style="font-size:20px;line-height:24px;letter-spacing:0">Flavoneer</div>
+    <div style="margin-top:2px">${overline(t("qualityControl"), ar)}</div>
+  </div>
+  <span class="${cls}" style="flex:none;border-radius:999px;border:1px solid rgba(28,74,60,.1);background:rgba(255,253,244,.9);padding:7px 12px;font-size:12px;color:${C.copy}">${t("online")}</span>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px 0">
+  ${overline(t("serial"), ar)}
+  <b style="font-size:14px" dir="ltr">H2-0412</b>
+</div>
+<div style="margin:12px 20px 0;padding:18px 20px;border-radius:30px;background:${C.forest};position:relative;overflow:hidden">
+  <span style="position:absolute;${ar ? "left" : "right"}:-44px;top:-52px;width:150px;height:150px;border-radius:999px;border:26px solid rgba(245,166,35,.15)"></span>
+  ${overline(t("inspectionContext"), ar, "#B9D8C8")}
+  <div class="${ar ? "ar" : "display"}" style="margin-top:6px;font-size:23px;line-height:28px;font-weight:800;color:${C.cream}">${s.product}</div>
+  <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+    ${contextPill(`${t("productionHall")} <span dir="ltr">2</span>`)}${contextPill(s.line)}${contextPill(`<span dir="ltr">13:00</span>`)}
+  </div>
+</div>
+<div style="margin:12px 20px 0;padding:20px;border-radius:30px;background:${C.cream};border:1px solid rgba(28,74,60,.14);box-shadow:0 10px 24px rgba(16,47,39,.07)">
+  ${overline(t("productionReview"), ar)}
+  <div class="${ar ? "ar" : "display"}" style="margin-top:6px;font-size:21px;line-height:26px;font-weight:800">${t("reviewDecision")}</div>
+  <div class="${cls}" style="margin-top:6px;font-size:13px;line-height:18px;color:${C.copy}">${t("reviewDecisionHelp")}</div>
+  <div style="margin-top:14px;border-radius:16px;background:${C.mintSoft};padding:12px 14px;display:grid;gap:10px">
+    ${summaryRow(t("confirmedEvidence"), `<span style="font-family:ui-monospace,Menlo,monospace" dir="ltr">060826 1</span>`)}
+    ${summaryRow(t("measurements"), t("allReadingsWithinRange"))}
+    ${summaryRow(t("complianceChecks"), t("complianceCompleted", { completed: 22, total: 22 }))}
+    <div class="${cls}" style="border-top:1px solid rgba(28,74,60,.1);padding-top:10px;font-size:12px;color:${C.copy}">${t("inspectedBy", { name: inspector })}</div>
+  </div>
+  <div style="margin-top:14px">${overline(t("reviewNote"), ar)}</div>
+  <div class="${cls}" style="margin-top:8px;height:64px;border-radius:16px;border:1px solid rgba(28,74,60,.12);background:${C.mintSoft};padding:11px 14px;font-size:14px;color:#789489">${t("reviewNotePlaceholder")}</div>
+  <div style="margin-top:16px;display:flex;gap:10px">
+    <div class="${cls}" style="flex:1;height:54px;border-radius:19px;border:2px solid ${C.forest};display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px">${icon(UNDO, C.forest)}${t("returnRecord")}</div>
+    <div class="${cls}" style="flex:1.4;height:54px;border-radius:19px;background:${C.forest};color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px">${icon(SCAN_FACE, "#fff")}${t("approveRecord")}</div>
+  </div>
+  <div class="${cls}" style="margin-top:12px;text-align:center;font-size:12px;color:${C.copy}">${t("biometricOnDevice")}</div>
+</div>
+<div dir="ltr" style="position:absolute;left:50%;top:136px;width:160px;height:160px;transform:translateX(-50%);border-radius:34px;background:rgba(242,242,237,.96);box-shadow:0 20px 50px rgba(0,0,0,.25);display:grid;place-items:center;text-align:center">
+  <div>
+    <svg width="70" height="70" viewBox="0 0 74 74" fill="none" stroke="${GREEN}" stroke-width="4" stroke-linecap="round"><path d="M4 20V12a8 8 0 0 1 8-8h8M54 4h8a8 8 0 0 1 8 8v8M70 54v8a8 8 0 0 1-8 8h-8M20 70h-8a8 8 0 0 1-8-8v-8"/><path d="M24 26v6M50 26v6M37 28v14h-4M27 51c6 5 14 5 20 0"/></svg>
+    <div style="margin-top:10px;font-size:16px;font-weight:600;color:#1d1d1d">Face ID</div>
+  </div>
+</div>`;
+}
+
+const FLASK = ["M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2", "M6.453 15h11.094", "M8.5 2h7"];
+const CIRCLE_CHECK = ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", "m9 12 2 2 4-4"];
+
+// Sample formulation; figures are formatted the way FormulationDetailScreen formats them (Latin digits in both languages).
+const FORMULATION = {
+  en: { name: "Cultured Oat Drink", category: "Beverages", ingredients: ["Oat base", "Canola oil", "Pea protein", "Mineral blend"] },
+  ar: { name: "مشروب الشوفان المخمّر", category: "المشروبات", ingredients: ["قاعدة الشوفان", "زيت الكانولا", "بروتين البازلاء", "خليط المعادن"] },
+};
+
+/** Formulation detail in the R&D section (FormulationDetailScreen in the app). */
+function formulationScreen(lang) {
+  const t = translator(lang);
+  const ar = lang === "ar";
+  const cls = ar ? "ar" : "";
+  const f = FORMULATION[lang];
+  const divider = "rgba(28,74,60,.1)";
+  const heroPill = (text) =>
+    `<span class="${cls}" style="border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.1);padding:6px 11px;font-size:12px;color:#E1EEE6;white-space:nowrap">${text}</span>`;
+  const figure = (label, value, mark = "") => `
+    <div style="flex:1;min-width:0;padding:13px 18px">
+      <div class="${cls}" style="font-size:12px;color:${C.copy}">${label}</div>
+      <div style="margin-top:3px;display:flex;align-items:center;gap:6px;font-size:20px;line-height:26px;font-weight:700">${mark}<span dir="ltr">${value}</span></div>
+    </div>`;
+  const ingredient = ([name, amount, share], i) => `
+    <div style="padding:11px 0;border-top:1px solid ${divider}">
+      <div style="display:flex;align-items:baseline;gap:12px">
+        <span class="${cls}" style="flex:1;font-size:14px;font-weight:700">${name}</span>
+        <span style="font-size:12px;color:${C.copy}" dir="ltr">${amount}</span>
+        <b style="font-size:14px" dir="ltr">${share}</b>
+      </div>
+      <div style="margin-top:8px;height:6px;border-radius:3px;background:#DCEBDD;overflow:hidden"><div style="width:${[84, 8, 6, 2][i]}%;height:100%;border-radius:3px;background:${C.amber}"></div></div>
+    </div>`;
+  return `
+${statusBar()}
+<div style="display:flex;align-items:center;gap:12px;padding:6px 20px 0">
+  <span style="flex:none;width:44px;height:44px;border-radius:999px;border:1px solid rgba(28,74,60,.1);background:${C.cream};display:grid;place-items:center">${icon([ar ? "m9 18 6-6-6-6" : "m15 18-6-6 6-6"], C.ink, 20)}</span>
+  <span style="flex:none;position:relative;width:48px;height:48px;border-radius:17px;background:${C.amber};display:grid;place-items:center;box-shadow:0 6px 10px rgba(16,47,39,.16)">
+    ${icon(FLASK, C.ink, 23)}
+    <span style="position:absolute;${ar ? "left" : "right"}:-4px;bottom:-4px;width:18px;height:18px;border-radius:999px;border:2px solid ${C.ink};background:${C.cream};display:grid;place-items:center">${icon(["m6 9 6 6 6-6"], C.ink, 10)}</span>
+  </span>
+  <div style="flex:1;min-width:0">
+    <div class="display" style="font-size:22px;line-height:24px;letter-spacing:0">Flavoneer</div>
+    <div style="margin-top:2px">${overline(t("researchWorkspace"), ar)}</div>
+  </div>
+</div>
+<div style="margin:22px 20px 0;padding:22px;border-radius:32px;background:${C.forest};position:relative;overflow:hidden">
+  <span style="position:absolute;${ar ? "left" : "right"}:-56px;top:-64px;width:176px;height:176px;border-radius:999px;border:30px solid rgba(245,166,35,.15)"></span>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <span style="width:46px;height:46px;border-radius:16px;background:${C.amber};display:grid;place-items:center">${icon(FLASK, C.ink, 22)}</span>
+    <span class="${cls}" style="border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;background:${C.mint};color:${C.ink}">${t("statusTesting")}</span>
+  </div>
+  <div style="margin-top:20px">${overline(t("formulation"), ar, "#B9D8C8")}</div>
+  <div class="${ar ? "ar" : "display"}" style="margin-top:6px;font-size:30px;line-height:36px;font-weight:800;letter-spacing:${ar ? 0 : -0.8}px;color:${C.cream}">${f.name}</div>
+  <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px">${heroPill(t("version", { version: "V4" }))}${heroPill(f.category)}</div>
+</div>
+<div style="margin:16px 20px 0">${card(
+    `<div style="display:flex">${figure(t("batchWeight"), "100.0 kg")}<span style="width:1px;background:${divider}"></span>${figure(t("batchCost"), "$184.20")}</div>
+    <div style="height:1px;background:${divider}"></div>
+    <div style="display:flex">${figure(t("costPerServing"), "$0.37")}<span style="width:1px;background:${divider}"></span>${figure(t("massBalance"), "100.0%", icon(CIRCLE_CHECK, GREEN, 17))}</div>`,
+    "overflow:hidden;border-radius:28px",
+  )}</div>
+<div style="margin:16px 20px 0">${card(
+    `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">${overline(t("ingredients"), ar)}<span style="font-size:12px;color:${C.copy}">4</span></div>
+    ${[
+      [f.ingredients[0], "84,000 g", "84.0%"],
+      [f.ingredients[1], "8,000 g", "8.00%"],
+      [f.ingredients[2], "6,000 g", "6.00%"],
+      [f.ingredients[3], "2,000 g", "2.00%"],
+    ]
+      .map(ingredient)
+      .join("")}`,
+    "border-radius:28px;padding:18px 20px 8px",
+  )}</div>`;
+}
+
 const SCREENS = {
   inspections: inspectionsScreen,
   capture: captureScreen,
+  approval: approvalScreen,
+  formulation: formulationScreen,
   readings: readingsScreen,
   compliance: complianceScreen,
 };
@@ -253,10 +400,12 @@ export const SCREENSHOT_SETS = {
   en: [
     { id: "01-inspections", screen: "inspections", lang: "en", theme: "light", headline: `Every hour on the line, ${loop("recorded.", 1.4)}` },
     { id: "02-batch-label", screen: "capture", lang: "en", theme: "dark", headline: `Snap the label. Confirm the ${loop("batch.", 1.4)}` },
-    { id: "03-readings", screen: "readings", lang: "en", theme: "light", headline: `Every reading checked against ${loop("spec.", 1.4)}` },
-    { id: "04-compliance", screen: "compliance", lang: "en", theme: "dark", headline: `Tick every check. Submit for ${loop("review.", 1.4)}` },
+    { id: "03-approve", screen: "approval", lang: "en", theme: "light", headline: `Approve records with ${loop("Face ID.", 1.4)}` },
+    { id: "04-formulations", screen: "formulation", lang: "en", theme: "dark", headline: `Every formula, costed to the ${loop("serving.", 1.4)}` },
+    { id: "05-readings", screen: "readings", lang: "en", theme: "light", headline: `Every reading checked against ${loop("spec.", 1.4)}` },
+    { id: "06-compliance", screen: "compliance", lang: "en", theme: "dark", headline: `Tick every check. Submit for ${loop("review.", 1.4)}` },
     {
-      id: "05-arabic",
+      id: "07-arabic",
       screen: "inspections",
       lang: "ar",
       theme: "light",
@@ -268,10 +417,12 @@ export const SCREENSHOT_SETS = {
   ar: [
     { id: "01-inspections", screen: "inspections", lang: "ar", theme: "light", dir: "rtl", headline: ar(`كل ساعة على الخط ${loop("مسجّلة.", 1.4)}`) },
     { id: "02-batch-label", screen: "capture", lang: "ar", theme: "dark", dir: "rtl", headline: ar(`صوّر البطاقة. ${loop("أكّد الدفعة.", 1.4)}`) },
-    { id: "03-readings", screen: "readings", lang: "ar", theme: "light", dir: "rtl", headline: ar(`كل قراءة تُقارن ${loop("بالمواصفة.", 1.4)}`) },
-    { id: "04-compliance", screen: "compliance", lang: "ar", theme: "dark", dir: "rtl", headline: ar(`أكمل الفحوصات ثم ${loop("أرسلها للمراجعة.", 1.4)}`) },
+    { id: "03-approve", screen: "approval", lang: "ar", theme: "light", dir: "rtl", headline: ar(`اعتمد السجلات ${loop("ببصمة الوجه.", 1.4)}`) },
+    { id: "04-formulations", screen: "formulation", lang: "ar", theme: "dark", dir: "rtl", headline: ar(`كل تركيبة بتكلفتها ${loop("لكل حصة.", 1.4)}`) },
+    { id: "05-readings", screen: "readings", lang: "ar", theme: "light", dir: "rtl", headline: ar(`كل قراءة تُقارن ${loop("بالمواصفة.", 1.4)}`) },
+    { id: "06-compliance", screen: "compliance", lang: "ar", theme: "dark", dir: "rtl", headline: ar(`أكمل الفحوصات ثم ${loop("أرسلها للمراجعة.", 1.4)}`) },
     {
-      id: "05-english",
+      id: "07-english",
       screen: "inspections",
       lang: "en",
       theme: "light",

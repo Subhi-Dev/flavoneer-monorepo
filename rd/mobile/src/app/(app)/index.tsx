@@ -1,1 +1,1 @@
-export { default } from '@/features/production-line/production-line-screen';
+export { default } from '@/features/research/research-screen';

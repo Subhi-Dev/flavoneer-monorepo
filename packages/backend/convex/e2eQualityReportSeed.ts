@@ -293,7 +293,7 @@ async function removeDemoRecord(
   if (record.batchLabelPhotoStorageId) {
     storageIds.add(record.batchLabelPhotoStorageId);
   }
-  const [readings, checks, events, readingFacts, reviewCycles, summary] = await Promise.all([
+  const [readings, checks, events, readingFacts, reviewCycles, summary, photos] = await Promise.all([
     ctx.db
       .query("productionLineReadings")
       .withIndex("by_recordId", (q) => q.eq("recordId", record._id))
@@ -318,8 +318,22 @@ async function removeDemoRecord(
       .query("qualityInspectionSummaries")
       .withIndex("by_recordId", (q) => q.eq("recordId", record._id))
       .unique(),
+    ctx.db
+      .query("productionLineRecordPhotos")
+      .withIndex("by_recordId", (q) => q.eq("recordId", record._id))
+      .take(20),
   ]);
-  for (const document of [...readingFacts, ...reviewCycles, ...readings, ...checks, ...events]) {
+  for (const photo of photos) {
+    storageIds.add(photo.storageId);
+  }
+  for (const document of [
+    ...readingFacts,
+    ...reviewCycles,
+    ...readings,
+    ...checks,
+    ...events,
+    ...photos,
+  ]) {
     await ctx.db.delete(document._id);
   }
   if (summary) {

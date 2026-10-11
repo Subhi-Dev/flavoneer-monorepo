@@ -747,6 +747,29 @@ export default defineSchema({
     .index("by_recordId", ["recordId"])
     .index("by_organizationId_and_createdAt", ["organizationId", "createdAt"]),
 
+  // Optional production photos an inspector attaches from the photo library,
+  // separate from the camera-only carton label evidence on the record.
+  productionLineRecordPhotos: defineTable({
+    recordId: v.id("productionLineRecords"),
+    organizationId: v.id("organizations"),
+    storageId: v.id("_storage"),
+    mimeType: v.string(),
+    size: v.number(),
+    uploadedBy: v.string(),
+    createdAt: v.number(),
+  }).index("by_recordId", ["recordId"]),
+
+  // Expo push tokens for the mobile app. One row per device; a device moves to
+  // whoever signs in on it last.
+  pushTokens: defineTable({
+    userId: v.string(), // Better Auth user ID
+    token: v.string(),
+    platform: v.union(v.literal("ios"), v.literal("android")),
+    updatedAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_userId", ["userId"]),
+
   // Manager-facing QC reporting facts. These rows mirror operational records
   // so bounded date-range reports do not need N+1 reads across child tables.
   qualityInspectionSummaries: defineTable({

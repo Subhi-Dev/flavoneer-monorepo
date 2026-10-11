@@ -34,6 +34,8 @@ const APP_TABLES = [
   "foodAdditives",
   "additiveLimits",
   "productionLineRecordEvents",
+  "productionLineRecordPhotos",
+  "pushTokens",
   "productionLineChecks",
   "productionLineReadings",
   "productionLineRecords",

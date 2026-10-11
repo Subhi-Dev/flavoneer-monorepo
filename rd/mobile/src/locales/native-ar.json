@@ -3,8 +3,7 @@
     "CFBundleDisplayName": "Flavoneer",
     "NSCameraUsageDescription": "اسمح لتطبيق Flavoneer بتصوير بطاقات دفعات كراتين الإنتاج المطبوعة.",
     "NSPhotoLibraryUsageDescription": "اسمح لتطبيق Flavoneer باختيار صور سجلات الإنتاج من مكتبة الصور.",
-    "NSFaceIDUsageDescription": "اسمح لتطبيق Flavoneer باستخدام Face ID لتأكيد اعتمادات الجودة.",
-    "NFCReaderUsageDescription": "اسمح لتطبيق Flavoneer بقراءة وسوم NFC على معدات الإنتاج."
+    "NSFaceIDUsageDescription": "اسمح لتطبيق Flavoneer باستخدام Face ID لتأكيد اعتمادات الجودة."
   },
   "android": {
     "app_name": "Flavoneer"

@@ -200,7 +200,7 @@ Flavoneer writes like a senior food scientist explaining something to a colleagu
 
 ## App Store and Google Play
 
-The icon is the F tile on both stores. Each store has an English and an Arabic listing with five screenshots
+The icon is the F tile on both stores. Each store has an English and an Arabic listing with seven screenshots
 each, in the same order, built from the app's locale files (`rd/mobile/src/locales/en.json` and `ar.json`) and
 theme. All files are in `exports/app-store/`. Form answers, listing copy, and the upload map are in
 [STORE_SUBMISSION.md](STORE_SUBMISSION.md).
@@ -208,36 +208,42 @@ theme. All files are in `exports/app-store/`. Form answers, listing copy, and th
 | Store | Asset | Size | File | Spec notes |
 | --- | --- | --- | --- | --- |
 | App Store | App icon | 1024 × 1024 | `ios/app-icon-1024.png` | RGB, no alpha, square corners; Apple applies the mask |
-| App Store | iPhone 6.9" screenshots × 5, English | 1320 × 2868 | `ios/screenshots-6.9in/` | Apple scales these down for smaller iPhones. No iPad set is needed, since tablet support is off |
-| App Store | iPhone 6.9" screenshots × 5, Arabic | 1320 × 2868 | `ios/screenshots-6.9in-ar/` | For the Arabic localization |
+| App Store | iPhone 6.9" screenshots × 7, English | 1320 × 2868 | `ios/screenshots-6.9in/` | Apple scales these down for smaller iPhones. No iPad set is needed, since tablet support is off |
+| App Store | iPhone 6.9" screenshots × 7, Arabic | 1320 × 2868 | `ios/screenshots-6.9in-ar/` | For the Arabic localization |
 | Google Play | App icon | 512 × 512 | `google-play/icon-512.png` | Full bleed, no alpha; Play applies the round mask |
 | Google Play | Feature graphic, English | 1024 × 500 | `google-play/feature-graphic-1024x500.png` | Text kept out of the bottom-right area that a promo video button can cover |
 | Google Play | Feature graphic, Arabic | 1024 × 500 | `google-play/feature-graphic-ar-1024x500.png` | For the `ar` translation |
-| Google Play | Phone screenshots × 5, English | 1080 × 1920 | `google-play/phone-screenshots/` | 9:16, meets the 1080 px minimum for promotion |
-| Google Play | Phone screenshots × 5, Arabic | 1080 × 1920 | `google-play/phone-screenshots-ar/` | For the `ar` translation |
+| Google Play | Phone screenshots × 7, English | 1080 × 1920 | `google-play/phone-screenshots/` | 9:16, meets the 1080 px minimum for promotion |
+| Google Play | Phone screenshots × 7, Arabic | 1080 × 1920 | `google-play/phone-screenshots-ar/` | For the `ar` translation |
 | Both | Adaptive and iOS 26 icon layers | 432 and 1024 | `rd/mobile/assets/` (unchanged) | Already wired in `app.config.ts`: mint #D2F2D4 background, monochrome layer |
 
 The build strips the alpha channel from every file in `exports/app-store/`, because App Store Connect rejects
 screenshots and icons with alpha and Google Play asks for 24-bit PNGs.
 
-| 1 | 2 | 3 | 4 | 5 |
-| --- | --- | --- | --- | --- |
-| ![](exports/app-store/google-play/phone-screenshots/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/03-readings-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/04-compliance-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/05-arabic-1080x1920.png) |
-| ![](exports/app-store/google-play/phone-screenshots-ar/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/03-readings-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/04-compliance-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/05-english-1080x1920.png) |
+| 01 | 02 | 03 | 04 | 05 | 06 | 07 |
+| --- | --- | --- | --- | --- | --- | --- |
+| ![](exports/app-store/google-play/phone-screenshots/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/03-approve-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/04-formulations-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/05-readings-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/06-compliance-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/07-arabic-1080x1920.png) |
+| ![](exports/app-store/google-play/phone-screenshots-ar/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/03-approve-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/04-formulations-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/05-readings-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/06-compliance-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/07-english-1080x1920.png) |
 
 **Screenshot story**
 
 | # | English headline | Arabic headline | Screen |
 | --- | --- | --- | --- |
-| 1 | *Every hour on the line, recorded.* | *كل ساعة على الخط مسجّلة.* | Hourly inspections list with status chips (light) |
-| 2 | *Snap the label. Confirm the batch.* | *صوّر البطاقة. أكّد الدفعة.* | Carton label capture and batch code entry (dark) |
-| 3 | *Every reading checked against spec.* | *كل قراءة تُقارن بالمواصفة.* | Actual readings with in-range and out-of-range values (light) |
-| 4 | *Tick every check. Submit for review.* | *أكمل الفحوصات ثم أرسلها للمراجعة.* | Compliance checks and the submit-for-review bar (dark) |
-| 5 | *Works in Arabic and English* (Arabic headline) | *يعمل بالعربية والإنجليزية* | The inspections screen in the other language (light) |
+| 01 | *Every hour on the line, recorded.* | *كل ساعة على الخط مسجّلة.* | Hourly inspections list with status chips (light) |
+| 02 | *Snap the label. Confirm the batch.* | *صوّر البطاقة. أكّد الدفعة.* | Carton label capture and batch code entry (dark) |
+| 03 | *Approve records with Face ID.* | *اعتمد السجلات ببصمة الوجه.* | Reviewer's view of a pending record: inspection context, review summary (label evidence, readings, compliance checks, inspector), review note, Return and Approve record buttons, with the system Face ID prompt (light) |
+| 04 | *Every formula, costed to the serving.* | *كل تركيبة بتكلفتها لكل حصة.* | R&D formulation detail: status, batch weight, batch cost, cost per serving, mass balance, and ingredient breakdown (dark) |
+| 05 | *Every reading checked against spec.* | *كل قراءة تُقارن بالمواصفة.* | Actual readings with in-range and out-of-range values (light) |
+| 06 | *Tick every check. Submit for review.* | *أكمل الفحوصات ثم أرسلها للمراجعة.* | Compliance checks and the submit-for-review bar (dark) |
+| 07 | *Works in Arabic and English* (Arabic headline) | *يعمل بالعربية والإنجليزية* | The inspections screen in the other language (light) |
 
-Screens 3 and 4 replaced the earlier Face ID approval and R&D formulation mockups on 2026-10-11. The mobile app
-has neither feature, and Apple rejects screenshots that show features the app lacks (guideline 2.3.3). Only
-put a feature on a screenshot once it ships in the mobile build.
+The earlier Face ID approval and R&D formulation mockups were removed on 2026-10-11 because the mobile app
+had neither feature, and Apple rejects screenshots that show features the app lacks (guideline 2.3.3). Only
+put a feature on a screenshot once it ships in the mobile build. Slot 03 returned once the mobile app shipped
+biometric approval for production reviewers; its mockup mirrors `ReviewDecisionPanel` in
+`rd/mobile/src/features/production-line/components/`. Slot 04 returned once the mobile app shipped its
+R&D section (formulations, formulation detail with lab runs, and materials); its mockup mirrors
+`FormulationDetailScreen` in `rd/mobile/src/features/research/`.
 
 The phone screens are high-fidelity mockups, not captures from a device. UI text is read from the locale files
 at build time, so a string change in the app flows into the next `node design/scripts/build.mjs app-store`.
@@ -301,8 +307,8 @@ All files live under `design/`. One script generates them from the brand fonts a
 | --- | --- | --- |
 | `exports/logo/svg/` | 17 | F symbol (signature, tile, 5 solids), wordmark (signature, 5 solids), lockup × 2, mascot wordmark × 2 |
 | `exports/logo/png/` | 14 | 512 to 2000 px renders of the main logo versions, plus the mascot pan |
-| `exports/app-store/ios/` | 11 | App icon, five 6.9" screenshots in English and five in Arabic |
-| `exports/app-store/google-play/` | 13 | Icon, English and Arabic feature graphics, five phone screenshots per language |
+| `exports/app-store/ios/` | 15 | App icon, 6.9" screenshots in English and in Arabic |
+| `exports/app-store/google-play/` | 17 | Icon, English and Arabic feature graphics, phone screenshots per language |
 | `exports/social/profile/` | 4 | F and mascot avatars at 400 and 800 px |
 | `exports/social/covers/` | 5 | X, LinkedIn company, LinkedIn banner, Facebook, YouTube |
 | `exports/social/posts/` | 5 | Hero, feature, stat, story, Open Graph |
