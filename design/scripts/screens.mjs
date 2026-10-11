@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { C, REPO_DIR, markSvg, tokens } from "./lib.mjs";
-import { bubbles, loop, page } from "./templates.mjs";
+import { blob, bubbles, loop, page } from "./templates.mjs";
 
 // Phone screens are drawn at 390x844 points (iPhone logical size) and scaled into each store frame.
 const SCREEN_W = 390;
@@ -433,6 +433,19 @@ export const SCREENSHOT_SETS = {
   ],
 };
 
+const BEZEL = 14;
+
+/** A phone showing one app screen, drawn at `scale` with its top-left corner at (`left`, `top`). */
+function phone({ screen, lang, dark = false, scale, left, top, rotate = 0, shadow = 1 }) {
+  return `<div class="abs" style="left:${left}px;top:${top}px;width:${SCREEN_W + BEZEL * 2}px;height:${SCREEN_H + BEZEL * 2}px;transform:rotate(${rotate}deg) scale(${scale});transform-origin:0 0;border-radius:64px;background:${dark ? "#081F1A" : C.ink};padding:${BEZEL}px;${rotate ? `filter:drop-shadow(0 30px 40px rgba(16,47,39,${(dark ? 0.6 : 0.28) * shadow}));` : `box-shadow:0 30px 80px rgba(16,47,39,${(dark ? 0.6 : 0.28) * shadow}),`}${rotate ? "box-shadow:" : ""}inset 0 0 0 2px ${dark ? "rgba(210,242,212,.2)" : "rgba(255,255,255,.08)"}">
+    <div style="position:relative;width:${SCREEN_W}px;height:${SCREEN_H}px;border-radius:50px;overflow:hidden;background:${C.mintSoft}" dir="${lang === "ar" ? "rtl" : "ltr"}">
+      ${SCREENS[screen](lang)}
+      <div style="position:absolute;left:50%;top:11px;width:122px;height:35px;border-radius:20px;background:#000;transform:translateX(-50%)"></div>
+      ${homeIndicator()}
+    </div>
+  </div>`;
+}
+
 /** A store screenshot: headline on top, scaled phone below. */
 export function screenshot({ width, height, shot }) {
   const dark = shot.theme === "dark";
@@ -440,9 +453,8 @@ export function screenshot({ width, height, shot }) {
   const headlineTop = height * 0.055;
   const headlineSize = 104 * u * (height / width > 2 ? 1 : 0.86);
   const phoneTop = height * (height / width > 2 ? 0.175 : 0.2);
-  const bezel = 14;
-  const scale = Math.min((height - phoneTop + 60 * u) / (SCREEN_H + bezel * 2), (width * 0.8) / (SCREEN_W + bezel * 2));
-  const phoneW = (SCREEN_W + bezel * 2) * scale;
+  const scale = Math.min((height - phoneTop + 60 * u) / (SCREEN_H + BEZEL * 2), (width * 0.8) / (SCREEN_W + BEZEL * 2));
+  const phoneW = (SCREEN_W + BEZEL * 2) * scale;
 
   const body = `
   <div class="abs ${dark ? "grid-bg dark" : ""}" style="inset:0;${dark ? `background-color:${C.deepForest};--g:${40 * u}px` : `background:radial-gradient(120% 60% at 50% 20%,${C.mintSoft},${C.mint} 70%)`}"></div>
@@ -451,12 +463,59 @@ export function screenshot({ width, height, shot }) {
     <div class="display" style="font-size:${headlineSize}px;line-height:1.06;color:${dark ? "#EFFBEF" : C.inkDeep}" dir="${shot.dir ?? "ltr"}">${shot.headline}</div>
     ${shot.sub ? `<div style="margin-top:${24 * u}px;font-size:${40 * u}px;font-weight:600;color:${C.forest}">${shot.sub}</div>` : ""}
   </div>
-  <div class="abs" style="left:${(width - phoneW) / 2}px;top:${phoneTop}px;width:${SCREEN_W + bezel * 2}px;height:${SCREEN_H + bezel * 2}px;transform:scale(${scale});transform-origin:0 0;border-radius:64px;background:${dark ? "#081F1A" : C.ink};padding:${bezel}px;box-shadow:0 30px 80px rgba(16,47,39,${dark ? 0.6 : 0.28}),inset 0 0 0 2px ${dark ? "rgba(210,242,212,.2)" : "rgba(255,255,255,.08)"}">
-    <div style="position:relative;width:${SCREEN_W}px;height:${SCREEN_H}px;border-radius:50px;overflow:hidden;background:${C.mintSoft}" dir="${shot.lang === "ar" ? "rtl" : "ltr"}">
-      ${SCREENS[shot.screen](shot.lang)}
-      <div style="position:absolute;left:50%;top:11px;width:122px;height:35px;border-radius:20px;background:#000;transform:translateX(-50%)"></div>
-      ${homeIndicator()}
-    </div>
-  </div>`;
+  ${phone({ screen: shot.screen, lang: shot.lang, dark, scale, left: (width - phoneW) / 2, top: phoneTop })}`;
+  return page({ width, height, body });
+}
+
+// --- App Store creative assets (iOS 27 product page header and search results) ---
+
+// Short phrases only: Apple asks for one idea per asset, and no URLs or prices.
+const CREATIVE_HEADLINES = {
+  en: `Quality checks for every ${loop("production line.", 2.6)}`,
+  ar: ar(`فحوصات الجودة لكل ${loop("خط إنتاج.", 2.6)}`),
+};
+
+// Three phones fanned around the center: the approval screen in front, capture and inspections behind it.
+function phoneFan({ lang, centerX, top, scale, spread }) {
+  const w = (SCREEN_W + BEZEL * 2) * scale;
+  const rtl = lang === "ar";
+  const side = (offset) => centerX - w / 2 + (rtl ? -offset : offset);
+  return [
+    phone({ screen: "capture", lang, dark: true, scale: scale * 0.9, left: side(-spread - w * 0.03), top: top + w * (rtl ? 0.1 : 0.22), rotate: rtl ? 7 : -7, shadow: 0.8 }),
+    phone({ screen: "inspections", lang, scale: scale * 0.9, left: side(spread + w * 0.08), top: top + w * (rtl ? 0.22 : 0.1), rotate: rtl ? -7 : 7, shadow: 0.8 }),
+    phone({ screen: "approval", lang, scale, left: centerX - w / 2, top }),
+  ].join("");
+}
+
+const creativeBackground = (u) => `
+  <div class="abs" style="inset:0;background:radial-gradient(70% 90% at 50% 40%,${C.mintSoft} 0%,${C.mint} 75%)"></div>
+  ${bubbles([[0.07, 0.14, 90 * u], [0.16, 0.62, 40 * u], [0.84, 0.12, 120 * u], [0.9, 0.58, 54 * u], [0.3, 0.08, 30 * u], [0.68, 0.74, 36 * u]], 4 * u)}`;
+
+/**
+ * Product page header (21:9). Apple overlays the app icon, name, and Get button on the lower part and crops
+ * the sides on narrow screens, so the art has no text and keeps the phones in the middle third.
+ */
+export function productHeader({ width, height, lang }) {
+  const u = width / 3840;
+  const scale = (height * 1.02) / (SCREEN_H + BEZEL * 2);
+  const body = `
+  ${creativeBackground(u)}
+  ${blob({ width: 2600 * u, height: 900 * u, left: (width - 2600 * u) / 2, bottom: -560 * u, rotate: -3 })}
+  ${phoneFan({ lang, centerX: width / 2, top: height * 0.1, scale, spread: 560 * u })}`;
+  return page({ width, height, body });
+}
+
+/** Search results card (3:2): the app's purpose in one line above the phones, all within the center. */
+export function searchResult({ width, height, lang }) {
+  const u = width / 3840;
+  const rtl = lang === "ar";
+  const scale = (height * 0.86) / (SCREEN_H + BEZEL * 2);
+  const body = `
+  ${creativeBackground(u)}
+  ${blob({ width: 2800 * u, height: 1000 * u, left: (width - 2800 * u) / 2, bottom: -640 * u, rotate: -3 })}
+  <div class="abs" style="left:${360 * u}px;right:${360 * u}px;top:${150 * u}px;text-align:center">
+    <div class="${rtl ? "" : "display"}" dir="${rtl ? "rtl" : "ltr"}" style="font-size:${190 * u}px;line-height:1.08;font-weight:800;color:${C.inkDeep}">${CREATIVE_HEADLINES[lang]}</div>
+  </div>
+  ${phoneFan({ lang, centerX: width / 2, top: height * 0.34, scale, spread: 620 * u })}`;
   return page({ width, height, body });
 }

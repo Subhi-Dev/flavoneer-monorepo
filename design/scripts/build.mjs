@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
 import { BRAND_DIR, C, MASCOT_FILE, MASCOT_PAN_FILE, dataUrl, markSvg, mascotWordmarkSvg, stripAlpha, toIco, wordmarkSvg } from "./lib.mjs";
-import { SCREENSHOT_SETS, screenshot } from "./screens.mjs";
+import { SCREENSHOT_SETS, productHeader, screenshot, searchResult } from "./screens.mjs";
 import { avatar, cover, featureGraphic, openGraph, page, postFeature, postHero, postStat, story } from "./templates.mjs";
 
 const OUT = path.join(BRAND_DIR, "exports");
@@ -91,8 +91,18 @@ const rasters = {
   "app-store/ios/app-icon-1024.png": square("logo/svg/flavoneer-mark-tile.svg", 1024, C.mint),
   ...Object.fromEntries(
     Object.entries(SCREENSHOT_SETS).flatMap(([lang, shots]) =>
-      shots.map((shot) => [`app-store/ios/screenshots-6.9in${suffix(lang)}/${shot.id}-1320x2868.png`, html(1320, 2868, (size) => screenshot({ ...size, shot }))]),
+      shots.flatMap((shot) => [
+        [`app-store/ios/screenshots-6.9in${suffix(lang)}/${shot.id}-1320x2868.png`, html(1320, 2868, (size) => screenshot({ ...size, shot }))],
+        [`app-store/ios/screenshots-6.3in${suffix(lang)}/${shot.id}-1206x2622.png`, html(1206, 2622, (size) => screenshot({ ...size, shot }))],
+      ]),
     ),
+  ),
+  // iOS 27 creative assets: product page header (21:9) and search results (3:2, largest allowed size).
+  ...Object.fromEntries(
+    ["en", "ar"].flatMap((lang) => [
+      [`app-store/ios/creative/product-header${suffix(lang)}-3840x1646.png`, html(3840, 1646, (size) => productHeader({ ...size, lang }))],
+      [`app-store/ios/creative/search-results${suffix(lang)}-3840x2560.png`, html(3840, 2560, (size) => searchResult({ ...size, lang }))],
+    ]),
   ),
 
   // Google Play

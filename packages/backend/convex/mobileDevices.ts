@@ -52,6 +52,7 @@ async function listSignedInDevices(ctx: QueryCtx, userId: string) {
     if (session) {
       signedIn.push({
         _id: device._id,
+        sessionId: device.sessionId,
         platform: device.platform,
         modelName: device.modelName,
         osVersion: device.osVersion,
@@ -162,10 +163,13 @@ export const isCurrentSessionRevoked = query({
 
 export const listMine = query({
   args: {},
-  returns: v.array(deviceReturnValidator),
+  // `isCurrent` marks the phone making the request, so it can label itself.
+  returns: v.array(deviceReturnValidator.extend({ isCurrent: v.boolean() })),
   handler: async (ctx) => {
     const authUser = await getAuthUserOrThrow(ctx);
-    return await listSignedInDevices(ctx, authUser._id);
+    const sessionId = await getCurrentSessionId(ctx);
+    const devices = await listSignedInDevices(ctx, authUser._id);
+    return devices.map((device) => ({ ...device, isCurrent: device.sessionId === sessionId }));
   },
 });
 

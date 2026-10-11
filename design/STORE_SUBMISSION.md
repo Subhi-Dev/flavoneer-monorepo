@@ -161,6 +161,12 @@ Flavoneer هو تطبيق جودة خطوط الإنتاج لمصنعي الأغ
 | --- | --- | --- |
 | App Store, English (U.S.) | iPhone 6.9" screenshots, in order | `exports/app-store/ios/screenshots-6.9in`, every file in filename order |
 | App Store, Arabic | iPhone 6.9" screenshots, in order | `exports/app-store/ios/screenshots-6.9in-ar`, every file in filename order |
+| App Store, English (U.S.) | iPhone 6.3" screenshots, in order | `exports/app-store/ios/screenshots-6.3in`, every file in filename order |
+| App Store, Arabic | iPhone 6.3" screenshots, in order | `exports/app-store/ios/screenshots-6.3in-ar`, every file in filename order |
+| App Store, English (U.S.) | Product page header (image, 21:9) | `exports/app-store/ios/creative/product-header-3840x1646.png` |
+| App Store, English (U.S.) | Search results (image, 3:2) | `exports/app-store/ios/creative/search-results-3840x2560.png` |
+| App Store, Arabic | Product page header (image, 21:9) | `exports/app-store/ios/creative/product-header-ar-3840x1646.png` |
+| App Store, Arabic | Search results (image, 3:2) | `exports/app-store/ios/creative/search-results-ar-3840x2560.png` |
 | App Store | App icon | Comes from the build (`assets/expo.icon`). `ios/app-icon-1024.png` is the same art for marketing use |
 | Google Play, en-US | App icon | `exports/app-store/google-play/icon-512.png` |
 | Google Play, en-US | Feature graphic | `exports/app-store/google-play/feature-graphic-1024x500.png` |
@@ -168,8 +174,18 @@ Flavoneer هو تطبيق جودة خطوط الإنتاج لمصنعي الأغ
 | Google Play, ar | Feature graphic | `exports/app-store/google-play/feature-graphic-ar-1024x500.png` |
 | Google Play, ar | Phone screenshots, in order | `exports/app-store/google-play/phone-screenshots-ar`, every file in filename order |
 
-Apple scales the 6.9" set down for smaller iPhones, so no other iPhone size is needed. Google Play tablet
-screenshots are optional and are not provided. Add the Arabic localization in App Store Connect
+Only the 6.9" set is required; Apple scales it down for smaller iPhones. The 6.3" set (1206 × 2622, the iPhone
+6.1" and 6.3" display slot) has the same seven screens, so those devices get native-size images instead of
+scaled ones. Upload it in the 6.3" tab of the iPhone media section. Google Play tablet screenshots are optional
+and are not provided.
+
+The product page header and search results artwork appear only on iOS 27 and iPadOS 27 and later. Upload them in
+App Store Connect under the app's creative assets, in each localization. Keep **Use header asset in search results**
+off, because the two files have different shapes: the header is 21:9 and the search result is 3:2. Apple places the
+app icon, name, and Get button over the header, so the header art has no text and keeps the three phones in the
+center. The search result uses one short headline, because search shoppers need the app's purpose at a glance.
+Neither asset shows a URL, price, or award, which Apple's asset guidelines forbid. Check both crops in
+App Store Connect's Preview before submitting. Add the Arabic localization in App Store Connect
 (App Information, Localizable Information) and the `ar` translation in Play Console (Store presence, Main store
 listing, Manage translations) before uploading the Arabic files.
 
@@ -348,7 +364,7 @@ These are mismatches between the build, the privacy policy, and the forms, or ch
    Add Clarity to the policy, including whether it records sessions, and check the masking mode in the Clarity
    project settings so that it hides inspection data and typed values.
 2. **The Arabic copy and screenshot headlines need a native speaker's review.** This covers the Arabic
-   listing above, the Arabic headlines in `scripts/screens.mjs`, and the Arabic feature graphic tagline in
+   listing above, the Arabic headlines in `scripts/screens.mjs` (screenshots and the search results artwork), and the Arabic feature graphic tagline in
    `scripts/templates.mjs`.
 3. **The screenshots are mockups.** They use the app's real strings and layout, but compare them with the
    release build on a physical iPhone and Android phone before upload.

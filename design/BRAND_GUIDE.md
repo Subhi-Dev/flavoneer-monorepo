@@ -210,6 +210,9 @@ theme. All files are in `exports/app-store/`. Form answers, listing copy, and th
 | App Store | App icon | 1024 × 1024 | `ios/app-icon-1024.png` | RGB, no alpha, square corners; Apple applies the mask |
 | App Store | iPhone 6.9" screenshots × 7, English | 1320 × 2868 | `ios/screenshots-6.9in/` | Apple scales these down for smaller iPhones. No iPad set is needed, since tablet support is off |
 | App Store | iPhone 6.9" screenshots × 7, Arabic | 1320 × 2868 | `ios/screenshots-6.9in-ar/` | For the Arabic localization |
+| App Store | iPhone 6.3" screenshots × 7, English and Arabic | 1206 × 2622 | `ios/screenshots-6.3in/`, `ios/screenshots-6.3in-ar/` | Optional 6.1"/6.3" display slot, same screens as the 6.9" set |
+| App Store | Product page header, English and Arabic | 3840 × 1646 | `ios/creative/product-header[-ar]-3840x1646.png` | 21:9, iOS 27 and later. No text, because Apple overlays the icon, name, and Get button. Phones kept in the center third for narrow crops |
+| App Store | Search results, English and Arabic | 3840 × 2560 | `ios/creative/search-results[-ar]-3840x2560.png` | 3:2 at the largest allowed size, iOS 27 and later. One headline: *Quality checks for every production line.* / *فحوصات الجودة لكل خط إنتاج.* |
 | Google Play | App icon | 512 × 512 | `google-play/icon-512.png` | Full bleed, no alpha; Play applies the round mask |
 | Google Play | Feature graphic, English | 1024 × 500 | `google-play/feature-graphic-1024x500.png` | Text kept out of the bottom-right area that a promo video button can cover |
 | Google Play | Feature graphic, Arabic | 1024 × 500 | `google-play/feature-graphic-ar-1024x500.png` | For the `ar` translation |
@@ -307,7 +310,7 @@ All files live under `design/`. One script generates them from the brand fonts a
 | --- | --- | --- |
 | `exports/logo/svg/` | 17 | F symbol (signature, tile, 5 solids), wordmark (signature, 5 solids), lockup × 2, mascot wordmark × 2 |
 | `exports/logo/png/` | 14 | 512 to 2000 px renders of the main logo versions, plus the mascot pan |
-| `exports/app-store/ios/` | 15 | App icon, 6.9" screenshots in English and in Arabic |
+| `exports/app-store/ios/` | 33 | App icon, 6.9" and 6.3" screenshots in English and in Arabic, product page header and search results artwork per language |
 | `exports/app-store/google-play/` | 17 | Icon, English and Arabic feature graphics, phone screenshots per language |
 | `exports/social/profile/` | 4 | F and mascot avatars at 400 and 800 px |
 | `exports/social/covers/` | 5 | X, LinkedIn company, LinkedIn banner, Facebook, YouTube |
@@ -320,7 +323,7 @@ All files live under `design/`. One script generates them from the brand fonts a
 
 - [ ] Decide whether the F symbol or the mascot pan leads as the primary logo (this guide assumes the F).
 - [ ] Compare the screenshot mockups with the release build on physical devices before store submission.
-- [ ] Have a native speaker review the Arabic screenshot headlines, the Arabic feature graphic tagline, the Arabic listing copy, and the sample product name (قطع الويفر بالشوكولاتة).
+- [ ] Have a native speaker review the Arabic screenshot headlines, the Arabic search results headline, the Arabic feature graphic tagline, the Arabic listing copy, and the sample product name (قطع الويفر بالشوكولاتة).
 - [ ] Clear the submission blockers listed in [STORE_SUBMISSION.md](STORE_SUBMISSION.md#blockers-to-fix-before-submission).
 - [ ] Pick one light canvas value. The landing uses #E9F8EA and the mobile app uses #EEF8EB.
 - [ ] Adopt the status colors in the mobile and web QC screens.
