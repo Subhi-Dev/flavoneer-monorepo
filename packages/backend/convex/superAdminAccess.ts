@@ -3,7 +3,6 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { authComponent } from "./auth";
 
 type SuperAdminCtx = QueryCtx | MutationCtx;
-const SUPER_ADMIN_EMAIL = "zeta.food@gmail.com";
 
 export interface SuperAdminIdentity {
   authUser: NonNullable<Awaited<ReturnType<typeof authComponent.getAuthUser>>>;
@@ -23,7 +22,10 @@ export async function getSuperAdminIdentity(
     .withIndex("by_authUserId", (query) => query.eq("authUserId", authUser._id))
     .unique();
 
-  if (!user?.isCreator || user.email?.trim().toLowerCase() !== SUPER_ADMIN_EMAIL) {
+  if (
+    !user?.isCreator ||
+    user.email?.trim().toLowerCase() !== SUPER_ADMIN_EMAIL
+  ) {
     return null;
   }
 

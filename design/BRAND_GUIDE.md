@@ -1,6 +1,6 @@
 # Flavoneer Brand & Design Guide
 
-As of 2026-10-08. Asset paths are relative to this folder. Regenerate everything with
+As of 2026-10-11. Asset paths are relative to this folder. Regenerate everything with
 `node design/scripts/build.mjs` (see [README.md](README.md)).
 
 ![Flavoneer lockup](exports/logo/png/flavoneer-lockup-2000.png)
@@ -200,40 +200,70 @@ Flavoneer writes like a senior food scientist explaining something to a colleagu
 
 ## App Store and Google Play
 
-The icon is the F tile on both stores. There are five screenshots per store, in the same order, built from the app's real strings and theme. All files are in `exports/app-store/`.
+The icon is the F tile on both stores. Each store has an English and an Arabic listing with seven screenshots
+each, in the same order, built from the app's locale files (`rd/mobile/src/locales/en.json` and `ar.json`) and
+theme. All files are in `exports/app-store/`. Form answers, listing copy, and the upload map are in
+[STORE_SUBMISSION.md](STORE_SUBMISSION.md).
 
 | Store | Asset | Size | File | Spec notes |
 | --- | --- | --- | --- | --- |
-| App Store | App icon | 1024 × 1024 | `ios/app-icon-1024.png` | RGB, no alpha (verified), square corners; Apple applies the mask |
-| App Store | iPhone 6.9" screenshots × 5 | 1320 × 2868 | `ios/screenshots-6.9in/` | Apple scales these down for smaller iPhones. No iPad set is needed, since tablet support is off |
+| App Store | App icon | 1024 × 1024 | `ios/app-icon-1024.png` | RGB, no alpha, square corners; Apple applies the mask |
+| App Store | iPhone 6.9" screenshots × 7, English | 1320 × 2868 | `ios/screenshots-6.9in/` | Apple scales these down for smaller iPhones. No iPad set is needed, since tablet support is off |
+| App Store | iPhone 6.9" screenshots × 7, Arabic | 1320 × 2868 | `ios/screenshots-6.9in-ar/` | For the Arabic localization |
+| App Store | iPhone 6.3" screenshots × 7, English and Arabic | 1206 × 2622 | `ios/screenshots-6.3in/`, `ios/screenshots-6.3in-ar/` | Optional 6.1"/6.3" display slot, same screens as the 6.9" set |
+| App Store | Product page header, English and Arabic | 3840 × 1646 | `ios/creative/product-header[-ar]-3840x1646.png` | 21:9, iOS 27 and later. No text, because Apple overlays the icon, name, and Get button. Phones kept in the center third for narrow crops |
+| App Store | Search results, English and Arabic | 3840 × 2560 | `ios/creative/search-results[-ar]-3840x2560.png` | 3:2 at the largest allowed size, iOS 27 and later. One headline: *Quality checks for every production line.* / *فحوصات الجودة لكل خط إنتاج.* |
 | Google Play | App icon | 512 × 512 | `google-play/icon-512.png` | Full bleed, no alpha; Play applies the round mask |
-| Google Play | Feature graphic | 1024 × 500 | `google-play/feature-graphic-1024x500.png` | Text kept out of the bottom-right area that a promo video button can cover |
-| Google Play | Phone screenshots × 5 | 1080 × 1920 | `google-play/phone-screenshots/` | 9:16, meets the 1080 px minimum for promotion |
+| Google Play | Feature graphic, English | 1024 × 500 | `google-play/feature-graphic-1024x500.png` | Text kept out of the bottom-right area that a promo video button can cover |
+| Google Play | Feature graphic, Arabic | 1024 × 500 | `google-play/feature-graphic-ar-1024x500.png` | For the `ar` translation |
+| Google Play | Phone screenshots × 7, English | 1080 × 1920 | `google-play/phone-screenshots/` | 9:16, meets the 1080 px minimum for promotion |
+| Google Play | Phone screenshots × 7, Arabic | 1080 × 1920 | `google-play/phone-screenshots-ar/` | For the `ar` translation |
 | Both | Adaptive and iOS 26 icon layers | 432 and 1024 | `rd/mobile/assets/` (unchanged) | Already wired in `app.config.ts`: mint #D2F2D4 background, monochrome layer |
 
-| 1 | 2 | 3 | 4 | 5 |
-| --- | --- | --- | --- | --- |
-| ![](exports/app-store/google-play/phone-screenshots/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/03-approve-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/04-formulations-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/05-arabic-1080x1920.png) |
+The build strips the alpha channel from every file in `exports/app-store/`, because App Store Connect rejects
+screenshots and icons with alpha and Google Play asks for 24-bit PNGs.
+
+| 01 | 02 | 03 | 04 | 05 | 06 | 07 |
+| --- | --- | --- | --- | --- | --- | --- |
+| ![](exports/app-store/google-play/phone-screenshots/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/03-approve-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/04-formulations-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/05-readings-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/06-compliance-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots/07-arabic-1080x1920.png) |
+| ![](exports/app-store/google-play/phone-screenshots-ar/01-inspections-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/02-batch-label-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/03-approve-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/04-formulations-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/05-readings-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/06-compliance-1080x1920.png) | ![](exports/app-store/google-play/phone-screenshots-ar/07-english-1080x1920.png) |
 
 **Screenshot story**
 
-1. *Every hour on the line, recorded.* Hourly inspections list with status chips (light).
-2. *Snap the label. Confirm the batch.* Carton label capture and batch code entry (dark).
-3. *Approve records with Face ID.* Inspection checks with the Face ID prompt (light).
-4. *Formulas, runs, and materials in one place.* R&D formulation card (dark).
-5. *يعمل بالعربية والإنجليزية / Works in Arabic and English.* The inspections screen in RTL (light).
+| # | English headline | Arabic headline | Screen |
+| --- | --- | --- | --- |
+| 01 | *Every hour on the line, recorded.* | *كل ساعة على الخط مسجّلة.* | Hourly inspections list with status chips (light) |
+| 02 | *Snap the label. Confirm the batch.* | *صوّر البطاقة. أكّد الدفعة.* | Carton label capture and batch code entry (dark) |
+| 03 | *Approve records with Face ID.* | *اعتمد السجلات ببصمة الوجه.* | Reviewer's view of a pending record: inspection context, review summary (label evidence, readings, compliance checks, inspector), review note, Return and Approve record buttons, with the system Face ID prompt (light) |
+| 04 | *Every formula, costed to the serving.* | *كل تركيبة بتكلفتها لكل حصة.* | R&D formulation detail: status, batch weight, batch cost, cost per serving, mass balance, and ingredient breakdown (dark) |
+| 05 | *Every reading checked against spec.* | *كل قراءة تُقارن بالمواصفة.* | Actual readings with in-range and out-of-range values (light) |
+| 06 | *Tick every check. Submit for review.* | *أكمل الفحوصات ثم أرسلها للمراجعة.* | Compliance checks and the submit-for-review bar (dark) |
+| 07 | *Works in Arabic and English* (Arabic headline) | *يعمل بالعربية والإنجليزية* | The inspections screen in the other language (light) |
 
-The phone screens are high-fidelity mockups drawn from `en.json` and `ar.json`, not captures from a device. Before submitting, swap them for captures from a physical iPhone and Android phone, or confirm the mockups match the shipping build. Apple rejects screenshots that misrepresent the app.
+The earlier Face ID approval and R&D formulation mockups were removed on 2026-10-11 because the mobile app
+had neither feature, and Apple rejects screenshots that show features the app lacks (guideline 2.3.3). Only
+put a feature on a screenshot once it ships in the mobile build. Slot 03 returned once the mobile app shipped
+biometric approval for production reviewers; its mockup mirrors `ReviewDecisionPanel` in
+`rd/mobile/src/features/production-line/components/`. Slot 04 returned once the mobile app shipped its
+R&D section (formulations, formulation detail with lab runs, and materials); its mockup mirrors
+`FormulationDetailScreen` in `rd/mobile/src/features/research/`.
 
-**Listing copy**
+The phone screens are high-fidelity mockups, not captures from a device. UI text is read from the locale files
+at build time, so a string change in the app flows into the next `node design/scripts/build.mjs app-store`.
+Product names and line names are sample data in `scripts/screens.mjs`. Before submitting, compare the mockups
+with the release build on a physical iPhone and Android phone.
+
+**Listing copy.** The full English and Arabic copy, with character counts, is in
+[STORE_SUBMISSION.md](STORE_SUBMISSION.md#listing-copy). Summary:
 
 | Field | Limit | Copy |
 | --- | --- | --- |
 | App name | 30 | Flavoneer |
-| iOS subtitle | 30 | Food R&D and line QC |
-| Play short description | 80 | Formulate, inspect, and approve food products from the lab to the line. |
-| Keywords (iOS) | 100 | food,formulation,quality control,QC,HACCP,inspection,batch,R&D,recipe,allergen,production |
-| Promotional text | 170 | Hourly line inspections, carton batch-code capture, and Face ID approvals, connected to your R&D formulations. |
+| iOS subtitle | 30 | Hourly QC for food production |
+| Play short description | 80 | Hourly production-line inspections, batch label photos, and QC checks. |
+| Keywords (iOS) | 100 | food,quality,QC,inspection,checklist,batch,production,factory,compliance,audit,label,food safety |
+| Promotional text | 170 | Record each production hour on your phone. Photograph the carton label, enter readings against spec, tick the compliance checks, and submit for review. |
+| Feature graphic tagline | n/a | Hourly quality checks for food production lines |
 
 ## Social media
 
@@ -280,19 +310,21 @@ All files live under `design/`. One script generates them from the brand fonts a
 | --- | --- | --- |
 | `exports/logo/svg/` | 17 | F symbol (signature, tile, 5 solids), wordmark (signature, 5 solids), lockup × 2, mascot wordmark × 2 |
 | `exports/logo/png/` | 14 | 512 to 2000 px renders of the main logo versions, plus the mascot pan |
-| `exports/app-store/ios/` | 6 | App icon, five 6.9" screenshots |
-| `exports/app-store/google-play/` | 7 | Icon, feature graphic, five phone screenshots |
+| `exports/app-store/ios/` | 33 | App icon, 6.9" and 6.3" screenshots in English and in Arabic, product page header and search results artwork per language |
+| `exports/app-store/google-play/` | 17 | Icon, English and Arabic feature graphics, phone screenshots per language |
 | `exports/social/profile/` | 4 | F and mascot avatars at 400 and 800 px |
 | `exports/social/covers/` | 5 | X, LinkedIn company, LinkedIn banner, Facebook, YouTube |
 | `exports/social/posts/` | 5 | Hero, feature, stat, story, Open Graph |
 | `exports/web/` | 11 | favicon.ico (16/32/48), favicon.svg, PNG favicons, Apple touch icon, PWA 192/512 and maskable, OG image |
 | `tokens.json` | 1 | Machine-readable palette, status colors, type, radii, spacing |
+| `STORE_SUBMISSION.md` | 1 | Store listing copy, privacy forms, ratings, and review notes |
 
 **Open items**
 
 - [ ] Decide whether the F symbol or the mascot pan leads as the primary logo (this guide assumes the F).
-- [ ] Replace the screenshot mockups with captures from physical devices before store submission, or confirm they match the build.
-- [ ] Have a native speaker review the Arabic product name in screenshot 5 (قطع الويفر بالشوكولاتة).
+- [ ] Compare the screenshot mockups with the release build on physical devices before store submission.
+- [ ] Have a native speaker review the Arabic screenshot headlines, the Arabic search results headline, the Arabic feature graphic tagline, the Arabic listing copy, and the sample product name (قطع الويفر بالشوكولاتة).
+- [ ] Clear the submission blockers listed in [STORE_SUBMISSION.md](STORE_SUBMISSION.md#blockers-to-fix-before-submission).
 - [ ] Pick one light canvas value. The landing uses #E9F8EA and the mobile app uses #EEF8EB.
 - [ ] Adopt the status colors in the mobile and web QC screens.
 - [ ] Point the landing `favicon.ico` and Open Graph tags at `design/exports/web/`.

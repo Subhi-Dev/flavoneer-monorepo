@@ -12,6 +12,7 @@ import {
   Mail,
   Palette,
   Shield,
+  Smartphone,
   User,
   UsersRound,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import { useSearchParams } from "react-router-dom";
 import AppearanceTab from "../components/profile/AppearanceTab";
 import IdentityTab from "../components/profile/IdentityTab";
 import LocalizationTab from "../components/profile/LocalizationTab";
+import MobileAppTab from "../components/profile/MobileAppTab";
 import { useOrganization } from "../context/OrganizationContext";
 import { useSettings } from "../context/SettingsContext";
 import { usePermissions } from "../hooks/usePermissions";
@@ -33,7 +35,7 @@ import {
 import OrganizationPage from "./organization";
 
 type SettingsScope = "user" | "organization";
-type UserSettingsTab = "identity" | "localization" | "appearance";
+type UserSettingsTab = "identity" | "localization" | "appearance" | "mobileApp";
 
 interface NavigationItem<T extends string> {
   icon: LucideIcon;
@@ -46,6 +48,7 @@ const USER_TABS = new Set<UserSettingsTab>([
   "identity",
   "localization",
   "appearance",
+  "mobileApp",
 ]);
 
 function resolveSettingsScope(requestedScope: string | null): SettingsScope {
@@ -179,6 +182,7 @@ const Settings: React.FC = () => {
     { id: "identity", label: t("identity"), icon: User },
     { id: "localization", label: t("localization"), icon: Languages },
     { id: "appearance", label: t("appearance"), icon: Palette },
+    { id: "mobileApp", label: t("mobile_app"), icon: Smartphone },
   ];
   const organizationDefinitions: Record<
     OrganizationSettingsTab,
@@ -237,6 +241,7 @@ const Settings: React.FC = () => {
           />
         )}
         {userActiveTab === "appearance" && <AppearanceTab />}
+        {userActiveTab === "mobileApp" && <MobileAppTab />}
       </div>
     </section>
   );

@@ -1,8 +1,9 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Camera, Check, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { ThemedText } from '@/components/themed-text';
 import { BrandColors } from '@/constants/theme';
 import { type ProductionLineTranslationKey, useProductionLineI18n } from '../i18n';
@@ -88,7 +89,7 @@ export function BatchLabelCamera({ onCapture, onClose, t, visible }: BatchLabelC
                   onPress={takePhoto}
                 >
                   {isCapturing ? (
-                    <ActivityIndicator color={BrandColors.ink} />
+                    <BrandSpinner color={BrandColors.ink} />
                   ) : (
                     <Camera color={BrandColors.ink} size={30} strokeWidth={2.4} />
                   )}
@@ -102,7 +103,7 @@ export function BatchLabelCamera({ onCapture, onClose, t, visible }: BatchLabelC
               {permission ? (
                 <Camera color={BrandColors.ink} size={34} />
               ) : (
-                <ActivityIndicator color={BrandColors.ink} />
+                <BrandSpinner color={BrandColors.ink} />
               )}
             </View>
             <ThemedText className="text-center !text-white" type="section">

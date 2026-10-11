@@ -54,10 +54,10 @@ const config: ExpoConfig = {
     package: isDevelopment
       ? "com.flavoneer.mobile.dev"
       : "com.flavoneer.mobile",
-    permissions: [
-      "android.permission.RECORD_AUDIO",
-      "android.permission.CAMERA",
-    ],
+    // FCM credentials for push notifications. EAS Build provides the file through the
+    // GOOGLE_SERVICES_JSON file environment variable; local builds without it skip FCM.
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+    permissions: ["android.permission.CAMERA"],
   },
   plugins: [
     "expo-router",
@@ -81,12 +81,20 @@ const config: ExpoConfig = {
     "expo-font",
     "expo-web-browser",
     "expo-image",
-    "expo-notifications",
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/images/android-icon-monochrome.png",
+        color: "#1C4A3C",
+      },
+    ],
     [
       "expo-image-picker",
       {
         photosPermission:
           "Allow Flavoneer to select production record photos from your library.",
+        // The app only picks still photos, so it never needs the microphone.
+        microphonePermission: false,
       },
     ],
     [
@@ -102,9 +110,9 @@ const config: ExpoConfig = {
       "expo-camera",
       {
         cameraPermission:
-          "Allow Flavoneer to photograph printed production carton labels.",
+          "Allow Flavoneer to photograph printed production carton labels and scan sign-in QR codes.",
         recordAudioAndroid: false,
-        barcodeScannerEnabled: false,
+        barcodeScannerEnabled: true,
       },
     ],
     "expo-sqlite",
@@ -116,14 +124,6 @@ const config: ExpoConfig = {
       {
         faceIDPermission:
           "Allow Flavoneer to use Face ID to confirm quality approvals.",
-      },
-    ],
-    [
-      "react-native-nfc-manager",
-      {
-        nfcPermission:
-          "Allow Flavoneer to read NFC tags on production equipment.",
-        includeNdefEntitlement: false,
       },
     ],
     "./plugins/with-ios-scene-lifecycle",
@@ -138,13 +138,17 @@ const config: ExpoConfig = {
   updates: {
     enabled: true,
     url: "https://ota.synbiodiet.com/manifest",
-    // DISABLE_CODE_SIGNING=true lets `expo start` run without the private key.
-    codeSigningCertificate: process.env.DISABLE_CODE_SIGNING
-      ? undefined
-      : "./certs/certificate.pem",
-    codeSigningMetadata: process.env.DISABLE_CODE_SIGNING
-      ? undefined
-      : { keyid: "main", alg: "rsa-v1_5-sha256" },
+    // Dev client builds load unsigned manifests from `expo start`, so they
+    // must not embed the certificate. DISABLE_CODE_SIGNING=true also skips
+    // signing for other variants when the private key isn't available.
+    codeSigningCertificate:
+      isDevelopment || process.env.DISABLE_CODE_SIGNING
+        ? undefined
+        : "./certs/certificate.pem",
+    codeSigningMetadata:
+      isDevelopment || process.env.DISABLE_CODE_SIGNING
+        ? undefined
+        : { keyid: "main", alg: "rsa-v1_5-sha256" },
     // expo-updates only sends headers that exist at build time. Keep the
     // channel a literal: an unset variable would drop the header.
     requestHeaders: {

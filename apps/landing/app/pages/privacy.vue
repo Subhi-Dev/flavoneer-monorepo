@@ -36,7 +36,7 @@ const sections = [
       },
       {
         label: 'Device features in the mobile app',
-        copy: 'With your permission, the app uses the camera to photograph carton labels, your photo library to attach production record photos, and NFC to read tags on production equipment. These are used only when you start the action.',
+        copy: 'With your permission, the app uses the camera to photograph carton labels and your photo library to attach production record photos. These are used only when you start the action.',
       },
       {
         label: 'Biometric confirmation',
@@ -89,7 +89,7 @@ const sections = [
     id: 'your-choices',
     title: 'Your rights and choices',
     paragraphs: [
-      'Depending on where you live, you may have the right to access, correct, export, or delete your personal information, and to object to or restrict certain processing. You can withdraw camera, photo, NFC, notification, and biometric permissions at any time in your device settings.',
+      'Depending on where you live, you may have the right to access, correct, export, or delete your personal information, and to object to or restrict certain processing. You can withdraw camera, photo, notification, and biometric permissions at any time in your device settings.',
       'If your account was provided by an organization, we may refer your request to that organization. To make a request, contact us using the address below. To delete your account, use the account deletion page at flavoneer.com/delete-account.',
     ],
   },

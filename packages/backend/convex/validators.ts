@@ -694,6 +694,7 @@ export const userReturnValidator = v.object({
   email: v.optional(v.string()),
   roleId: v.optional(v.id("roles")),
   isCreator: v.optional(v.boolean()),
+  isSuperAdmin: v.optional(v.boolean()),
 });
 
 /** User document with role populated */
@@ -705,6 +706,7 @@ export const userWithRoleReturnValidator = v.object({
   email: v.optional(v.string()),
   roleId: v.optional(v.id("roles")),
   isCreator: v.optional(v.boolean()),
+  isSuperAdmin: v.optional(v.boolean()),
   role: v.optional(roleReturnValidator),
   workspaceRole: organizationMemberRoleValidator,
   effectivePermissions: v.array(v.string()),

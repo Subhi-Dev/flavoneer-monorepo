@@ -1157,6 +1157,8 @@
   "back_to_records": "Back to records",
   "evidence_not_captured": "Carton-label evidence has not been captured.",
   "evidence_confirmed_by_qc": "Photo and printed code confirmed by QC.",
+  "production_photos": "Production photos",
+  "production_photo_alt": "Production photo {{number}}",
   "parsed_batch_data": "Parsed batch data",
   "daily_batch_sequence": "Daily batch sequence",
   "production_date": "Production date",
@@ -1551,10 +1553,5 @@
   "factory_connection_flow": "Material flow",
   "visible": "Visible",
   "scale": "Scale",
-  "rotation": "Rotation",
-  "factory_3d_loading": "Loading the 3D factory...",
-  "factory_3d_error_title": "The 3D factory view could not load",
-  "factory_3d_error_help": "Check browser graphics support and the model asset response, then retry. The rest of the workspace remains available.",
-  "factory_3d_error_details": "Technical details",
-  "factory_3d_retry": "Retry 3D view"
+  "rotation": "Rotation"
 }

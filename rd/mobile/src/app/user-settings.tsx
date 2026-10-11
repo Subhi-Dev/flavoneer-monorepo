@@ -1,5 +1,7 @@
+import { useMutation, useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import {
+  Bell,
   Building2,
   Check,
   ChevronLeft,
@@ -12,9 +14,10 @@ import {
   Palette,
   Sun,
 } from 'lucide-react-native';
-import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, AppState, Linking, Pressable, Switch, View } from 'react-native';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandScreen, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { UserAvatar } from '@/components/user-avatar';
@@ -23,7 +26,13 @@ import { useOrganization } from '@/contexts/organization-context';
 import { type ThemePreference, useThemePreference } from '@/contexts/theme-preference-context';
 import { useProductionLineI18n } from '@/features/production-line/i18n';
 import { useTheme } from '@/hooks/use-theme';
-import { authClient } from '@/lib/backend';
+import { api, authClient } from '@/lib/backend';
+import {
+  enablePushNotifications,
+  getNotificationPermission,
+  type NotificationPermission,
+  unregisterPushNotifications,
+} from '@/lib/push-notifications';
 
 export default function UserSettingsScreen() {
   const { data: session } = authClient.useSession();
@@ -35,12 +44,41 @@ export default function UserSettingsScreen() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isSavingLanguage, setIsSavingLanguage] = useState(false);
   const [isSavingTheme, setIsSavingTheme] = useState(false);
+  const [isSavingAlerts, setIsSavingAlerts] = useState(false);
+  const [notificationPermission, setNotificationPermission] =
+    useState<NotificationPermission | null>(null);
+  const settings = useQuery(api.settings.get, {});
+  const upsertSettings = useMutation(api.settings.upsert);
+  const registerPushToken = useMutation(api.pushNotifications.registerPushToken);
+  const unregisterPushToken = useMutation(api.pushNotifications.unregisterPushToken);
+  const unregisterCurrentDevice = useMutation(api.mobileDevices.unregisterCurrentDevice);
   const router = useRouter();
   const theme = useTheme();
+  // App alerts are shared with the web lab and default to on.
+  const alertsEnabled = settings?.appAlerts !== false;
+
+  // Re-read the system permission when returning from the device settings.
+  useEffect(() => {
+    const refresh = () => {
+      getNotificationPermission()
+        .then(setNotificationPermission)
+        .catch(() => undefined);
+    };
+    refresh();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        refresh();
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
+      // Best effort: a failure here must not block signing out.
+      await unregisterPushNotifications(unregisterPushToken).catch(() => undefined);
+      await unregisterCurrentDevice({}).catch(() => undefined);
       const result = await authClient.signOut();
       if (result.error) {
         Alert.alert(t('signOutFailed'), t('tryAgain'));
@@ -68,6 +106,34 @@ export default function UserSettingsScreen() {
       );
     } finally {
       setIsSavingLanguage(false);
+    }
+  };
+
+  const handleAlertsChange = async (enabled: boolean) => {
+    if (isSavingAlerts) {
+      return;
+    }
+    setIsSavingAlerts(true);
+    try {
+      await upsertSettings({ appAlerts: enabled });
+      if (enabled) {
+        const registered = await enablePushNotifications(
+          t('notificationChannelName'),
+          registerPushToken,
+        );
+        const permission = await getNotificationPermission();
+        setNotificationPermission(permission);
+        if (!registered && permission === 'denied') {
+          Alert.alert(t('notifications'), t('notificationsBlocked'), [
+            { style: 'cancel', text: t('cancel') },
+            { onPress: () => Linking.openSettings(), text: t('openSettings') },
+          ]);
+        }
+      }
+    } catch {
+      Alert.alert(t('notificationsUpdateFailed'), t('tryAgain'));
+    } finally {
+      setIsSavingAlerts(false);
     }
   };
 
@@ -177,7 +243,7 @@ export default function UserSettingsScreen() {
 
             <View className="mx-5 mb-5 gap-2">
               {organizationsLoading ? (
-                <ActivityIndicator color={theme.text} />
+                <BrandSpinner />
               ) : organizations.length === 0 ? (
                 <ThemedText themeColor="textSecondary" type="caption">
                   {t('noOrganization')}
@@ -298,6 +364,45 @@ export default function UserSettingsScreen() {
           </BrandSurface>
         </BrandEntrance>
 
+        <BrandEntrance delay={385}>
+          <BrandSurface className="mb-6 !p-0">
+            <View className="flex-row items-center gap-3 px-5 py-5">
+              <View className="size-10 items-center justify-center rounded-[14px] bg-[#D2F2D4]/70 dark:bg-[#D2F2D4]/10">
+                <Bell color={theme.text} size={19} />
+              </View>
+              <View className="min-w-0 flex-1">
+                <ThemedText type="smallBold">{t('notifications')}</ThemedText>
+                <ThemedText className="mt-0.5" themeColor="textSecondary" type="caption">
+                  {alertsEnabled && notificationPermission === 'denied'
+                    ? t('notificationsBlocked')
+                    : t('notificationsDescription')}
+                </ThemedText>
+              </View>
+              {isSavingAlerts || settings === undefined ? (
+                <BrandSpinner />
+              ) : (
+                <Switch
+                  accessibilityLabel={t('notifications')}
+                  ios_backgroundColor="rgba(28, 74, 60, 0.18)"
+                  onValueChange={handleAlertsChange}
+                  thumbColor="#FFFDF4"
+                  trackColor={{ false: 'rgba(28, 74, 60, 0.18)', true: '#1C4A3C' }}
+                  value={alertsEnabled}
+                />
+              )}
+            </View>
+            {alertsEnabled && notificationPermission === 'denied' ? (
+              <Pressable
+                accessibilityRole="button"
+                className="mx-5 mb-5 min-h-11 items-center justify-center rounded-[14px] bg-[#1C4A3C]/5 active:opacity-70 dark:bg-[#D2F2D4]/5"
+                onPress={() => Linking.openSettings()}
+              >
+                <ThemedText type="smallBold">{t('openSettings')}</ThemedText>
+              </Pressable>
+            ) : null}
+          </BrandSurface>
+        </BrandEntrance>
+
         <BrandEntrance delay={420}>
           <Pressable
             accessibilityLabel={t('signOut')}
@@ -307,7 +412,7 @@ export default function UserSettingsScreen() {
             onPress={handleSignOut}
           >
             {isSigningOut ? (
-              <ActivityIndicator color={theme.text} size="small" />
+              <BrandSpinner />
             ) : (
               <LogOut
                 color={theme.text}

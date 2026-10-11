@@ -1,10 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
-  factoryConnectionKindValidator,
-  factoryMachineAssetKeyValidator,
-} from "./factoryLayoutValidators";
-import {
   hotUpdaterBundleDocumentValidator,
   hotUpdaterBundlePatchDocumentValidator,
 } from "./hotUpdaterValidators";
@@ -50,21 +46,6 @@ import {
 } from "./validators";
 
 export default defineSchema({
-  hotUpdaterBundles: defineTable(hotUpdaterBundleDocumentValidator)
-    .index("by_bundleId", ["bundleId"])
-    .index("by_channel_and_bundleId", ["channel", "bundleId"])
-    .index("by_platform_and_bundleId", ["platform", "bundleId"])
-    .index("by_platform_and_channel_and_bundleId", ["platform", "channel", "bundleId"]),
-
-  hotUpdaterBundlePatches: defineTable(hotUpdaterBundlePatchDocumentValidator).index(
-    "by_bundleId_and_baseBundleId",
-    ["bundleId", "baseBundleId"],
-  ),
-
-  hotUpdaterChannels: defineTable({
-    channel: v.string(),
-  }).index("by_channel", ["channel"]),
-
   projects: defineTable({
     name: v.string(),
     nameI18n: v.optional(localizedStringValidator),
@@ -157,8 +138,12 @@ export default defineSchema({
     email: v.optional(v.string()),
     // @deprecated: role assignments now live on organization memberships.
     roleId: v.optional(v.id("roles")),
+    // @deprecated: superseded by isSuperAdmin. Kept so existing documents still validate.
     isCreator: v.optional(v.boolean()),
-  }).index("by_authUserId", ["authUserId"]),
+    isSuperAdmin: v.optional(v.boolean()),
+  })
+    .index("by_authUserId", ["authUserId"])
+    .index("by_email", ["email"]),
 
   // ─── Approval Workflow Comments ───────────────────
   comments: defineTable({
@@ -237,7 +222,10 @@ export default defineSchema({
     sortOrder: v.number(),
     onFail: v.optional(
       v.object({
-        action: v.union(v.literal("redirect_dispose"), v.literal("report_reason")),
+        action: v.union(
+          v.literal("redirect_dispose"),
+          v.literal("report_reason"),
+        ),
         reasonPrompt: v.optional(v.string()),
       }),
     ),
@@ -404,7 +392,10 @@ export default defineSchema({
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   })
-    .index("by_categoryCode_normalizedInsNumber", ["categoryCode", "normalizedInsNumber"])
+    .index("by_categoryCode_normalizedInsNumber", [
+      "categoryCode",
+      "normalizedInsNumber",
+    ])
     .index("by_normalizedInsNumber", ["normalizedInsNumber"])
     .index("by_foodCategoryId", ["foodCategoryId"]),
 
@@ -444,7 +435,11 @@ export default defineSchema({
     nextSequence: v.number(),
     updatedAt: v.number(),
     updatedBy: v.string(),
-  }).index("by_organizationId_and_sampleType_and_year", ["organizationId", "sampleType", "year"]),
+  }).index("by_organizationId_and_sampleType_and_year", [
+    "organizationId",
+    "sampleType",
+    "year",
+  ]),
 
   labSampleSubmissions: defineTable({
     organizationId: v.id("organizations"),
@@ -463,8 +458,14 @@ export default defineSchema({
     submittedByName: v.string(),
     createdAt: v.number(),
   })
-    .index("by_organizationId_and_sampleNumber", ["organizationId", "sampleNumber"])
-    .index("by_organizationId_and_productionNumber", ["organizationId", "productionNumber"])
+    .index("by_organizationId_and_sampleNumber", [
+      "organizationId",
+      "sampleNumber",
+    ])
+    .index("by_organizationId_and_productionNumber", [
+      "organizationId",
+      "productionNumber",
+    ])
     .index("by_organizationId_and_projectId_and_sampledAt", [
       "organizationId",
       "projectId",
@@ -496,7 +497,11 @@ export default defineSchema({
     durationString: v.optional(v.string()),
     data: v.record(v.string(), v.number()),
     status: v.optional(
-      v.union(v.literal("completed"), v.literal("failed"), v.literal("In Progress")),
+      v.union(
+        v.literal("completed"),
+        v.literal("failed"),
+        v.literal("In Progress"),
+      ),
     ),
     failureReason: v.optional(v.string()),
     currentPhaseIndex: v.optional(v.number()),
@@ -512,7 +517,10 @@ export default defineSchema({
       }),
     ),
     stepLogs: v.optional(
-      v.record(v.string(), v.object({ startTime: v.number(), observation: v.string() })),
+      v.record(
+        v.string(),
+        v.object({ startTime: v.number(), observation: v.string() }),
+      ),
     ),
     runOutcome: v.optional(runOutcomeValidator),
     image: v.optional(v.string()),
@@ -662,7 +670,11 @@ export default defineSchema({
   })
     .index("by_organizationId_and_productId", ["organizationId", "productId"])
     .index("by_organizationId_and_status", ["organizationId", "status"])
-    .index("by_organizationId_and_productId_and_status", ["organizationId", "productId", "status"]),
+    .index("by_organizationId_and_productId_and_status", [
+      "organizationId",
+      "productId",
+      "status",
+    ]),
 
   productionLineSpecificationLimits: defineTable({
     specificationId: v.id("productionLineSpecifications"),
@@ -672,7 +684,10 @@ export default defineSchema({
     maximum: v.number(),
     target: v.optional(v.number()),
     minimumReadingCount: v.number(),
-  }).index("by_specificationId_and_readingKey", ["specificationId", "readingKey"]),
+  }).index("by_specificationId_and_readingKey", [
+    "specificationId",
+    "readingKey",
+  ]),
 
   productionLineReadings: defineTable({
     recordId: v.id("productionLineRecords"),
@@ -762,6 +777,47 @@ export default defineSchema({
     .index("by_recordId", ["recordId"])
     .index("by_organizationId_and_createdAt", ["organizationId", "createdAt"]),
 
+  // Optional production photos an inspector attaches from the photo library,
+  // separate from the camera-only carton label evidence on the record.
+  productionLineRecordPhotos: defineTable({
+    recordId: v.id("productionLineRecords"),
+    organizationId: v.id("organizations"),
+    storageId: v.id("_storage"),
+    mimeType: v.string(),
+    size: v.number(),
+    uploadedBy: v.string(),
+    createdAt: v.number(),
+  }).index("by_recordId", ["recordId"]),
+
+  // Expo push tokens for the mobile app. One row per device; a device moves to
+  // whoever signs in on it last.
+  pushTokens: defineTable({
+    userId: v.string(), // Better Auth user ID
+    token: v.string(),
+    platform: v.union(v.literal("ios"), v.literal("android")),
+    // Better Auth session of the phone, so signing the phone out stops its alerts.
+    sessionId: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_userId", ["userId"])
+    .index("by_sessionId", ["sessionId"]),
+
+  // Phones signed in to the mobile app. One row per Better Auth session, so
+  // each phone can be signed out on its own from Settings › Mobile app.
+  mobileDevices: defineTable({
+    sessionId: v.string(), // Better Auth session ID
+    userId: v.string(), // Better Auth user ID
+    platform: v.union(v.literal("ios"), v.literal("android")),
+    modelName: v.optional(v.string()),
+    osVersion: v.optional(v.string()),
+    appVersion: v.optional(v.string()),
+    createdAt: v.number(),
+    lastActiveAt: v.number(),
+  })
+    .index("by_sessionId", ["sessionId"])
+    .index("by_userId", ["userId"]),
+
   // Manager-facing QC reporting facts. These rows mirror operational records
   // so bounded date-range reports do not need N+1 reads across child tables.
   qualityInspectionSummaries: defineTable({
@@ -786,7 +842,9 @@ export default defineSchema({
     firstSubmittedAt: v.optional(v.number()),
     lastSubmittedAt: v.optional(v.number()),
     lastReviewedAt: v.optional(v.number()),
-    firstReviewDecision: v.optional(v.union(v.literal("approved"), v.literal("returned"))),
+    firstReviewDecision: v.optional(
+      v.union(v.literal("approved"), v.literal("returned")),
+    ),
     returnedCount: v.number(),
     totalReadingCount: v.number(),
     withinLimitReadingCount: v.number(),
@@ -800,7 +858,10 @@ export default defineSchema({
     requiredReadingRequirementCount: v.number(),
   })
     .index("by_recordId", ["recordId"])
-    .index("by_organizationId_and_inspectionAt", ["organizationId", "inspectionAt"])
+    .index("by_organizationId_and_inspectionAt", [
+      "organizationId",
+      "inspectionAt",
+    ])
     .index("by_organizationId_and_status_and_inspectionAt", [
       "organizationId",
       "status",
@@ -842,7 +903,10 @@ export default defineSchema({
   })
     .index("by_sourceReadingId", ["sourceReadingId"])
     .index("by_recordId", ["recordId"])
-    .index("by_organizationId_and_inspectionAt", ["organizationId", "inspectionAt"])
+    .index("by_organizationId_and_inspectionAt", [
+      "organizationId",
+      "inspectionAt",
+    ])
     .index("by_organizationId_and_readingKey_and_inspectionAt", [
       "organizationId",
       "readingKey",
@@ -869,7 +933,10 @@ export default defineSchema({
     hasNote: v.optional(v.boolean()),
   })
     .index("by_recordId_and_cycleNumber", ["recordId", "cycleNumber"])
-    .index("by_organizationId_and_submittedAt", ["organizationId", "submittedAt"])
+    .index("by_organizationId_and_submittedAt", [
+      "organizationId",
+      "submittedAt",
+    ])
     .index("by_organizationId_and_qcUserId_and_submittedAt", [
       "organizationId",
       "qcUserId",
@@ -904,7 +971,10 @@ export default defineSchema({
   })
     .index("by_labReportId", ["labReportId"])
     .index("by_sampleSubmissionId", ["sampleSubmissionId"])
-    .index("by_organizationId_and_reportCreatedAt", ["organizationId", "reportCreatedAt"])
+    .index("by_organizationId_and_reportCreatedAt", [
+      "organizationId",
+      "reportCreatedAt",
+    ])
     .index("by_organizationId_and_sampledAt", ["organizationId", "sampledAt"])
     .index("by_organizationId_and_projectId_and_reportCreatedAt", [
       "organizationId",
@@ -930,13 +1000,20 @@ export default defineSchema({
   })
     .index("by_sourceTestResultId", ["sourceTestResultId"])
     .index("by_labReportId", ["labReportId"])
-    .index("by_organizationId_and_reportCreatedAt", ["organizationId", "reportCreatedAt"]),
+    .index("by_organizationId_and_reportCreatedAt", [
+      "organizationId",
+      "reportCreatedAt",
+    ]),
 
   qualityReportingMigrationIssues: defineTable({
     organizationId: v.id("organizations"),
     labReportId: v.id("labReports"),
     lotNumber: v.string(),
-    reason: v.union(v.literal("invalid_batch"), v.literal("no_match"), v.literal("ambiguous")),
+    reason: v.union(
+      v.literal("invalid_batch"),
+      v.literal("no_match"),
+      v.literal("ambiguous"),
+    ),
     candidateSampleIds: v.array(v.id("labSampleSubmissions")),
     createdAt: v.number(),
   })
@@ -1000,7 +1077,10 @@ export default defineSchema({
   })
     .index("by_featureFlagId", ["featureFlagId"])
     .index("by_organizationId", ["organizationId"])
-    .index("by_featureFlagId_and_organizationId", ["featureFlagId", "organizationId"]),
+    .index("by_featureFlagId_and_organizationId", [
+      "featureFlagId",
+      "organizationId",
+    ]),
 
   platformAuditLogs: defineTable({
     actorId: v.string(),
@@ -1103,7 +1183,10 @@ export default defineSchema({
     sortOrder: v.number(),
     onFail: v.optional(
       v.object({
-        action: v.union(v.literal("redirect_dispose"), v.literal("report_reason")),
+        action: v.union(
+          v.literal("redirect_dispose"),
+          v.literal("report_reason"),
+        ),
         reasonPrompt: v.optional(v.string()),
       }),
     ),

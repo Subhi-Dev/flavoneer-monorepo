@@ -1157,6 +1157,8 @@
   "back_to_records": "العودة إلى السجلات",
   "evidence_not_captured": "لم يتم تصوير دليل بطاقة الكرتونة.",
   "evidence_confirmed_by_qc": "تم تأكيد الصورة والرمز المطبوع من فاحص الجودة.",
+  "production_photos": "صور الإنتاج",
+  "production_photo_alt": "صورة الإنتاج {{number}}",
   "parsed_batch_data": "بيانات الدفعة المحللة",
   "daily_batch_sequence": "تسلسل دفعة اليوم",
   "production_date": "تاريخ الإنتاج",
@@ -1551,10 +1553,5 @@
   "factory_connection_flow": "تدفق المواد",
   "visible": "ظاهر",
   "scale": "المقياس",
-  "rotation": "الدوران",
-  "factory_3d_loading": "جارٍ تحميل المصنع ثلاثي الأبعاد...",
-  "factory_3d_error_title": "تعذر تحميل عرض المصنع ثلاثي الأبعاد",
-  "factory_3d_error_help": "تحقق من دعم الرسوميات في المتصفح ومن استجابة ملفات النماذج، ثم أعد المحاولة. ستبقى بقية مساحة العمل متاحة.",
-  "factory_3d_error_details": "التفاصيل التقنية",
-  "factory_3d_retry": "إعادة محاولة العرض ثلاثي الأبعاد"
+  "rotation": "الدوران"
 }

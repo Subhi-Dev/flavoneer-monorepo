@@ -11,6 +11,7 @@ import {
   PRODUCTION_LINE_CHECK_KEYS,
   parsePrintedBatchCode,
 } from "./productionLineRecordHelpers";
+import { notifyInspectorOfDecision, notifyReviewersOfSubmission } from "./pushNotifications";
 import {
   closeReviewCycle,
   openReviewCycle,
@@ -29,6 +30,7 @@ import { requireWorkspaceMember } from "./workspaceAccess";
 const editableStatuses = new Set(["draft", "returned"]);
 const allowedBatchLabelMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maximumBatchLabelBytes = 8 * 1024 * 1024;
+const maximumRecordPhotos = 10;
 
 const recordSummaryValidator = v.object({
   _id: v.id("productionLineRecords"),
@@ -74,6 +76,12 @@ const readingReturnValidator = v.object({
   withinLimit: v.boolean(),
 });
 
+const recordPhotoReturnValidator = v.object({
+  _id: v.id("productionLineRecordPhotos"),
+  createdAt: v.number(),
+  url: v.optional(v.string()),
+});
+
 const checkReturnValidator = v.object({
   checkKey: productionLineCheckKeyValidator,
   checked: v.boolean(),
@@ -101,6 +109,7 @@ const recordDetailValidator = v.object({
   readings: v.array(readingReturnValidator),
   recordRevision: v.number(),
   checks: v.array(checkReturnValidator),
+  photos: v.array(recordPhotoReturnValidator),
   specificationLimits: v.array(specificationLimitReturnValidator),
   specificationVersion: v.number(),
   status: v.string(),
@@ -162,7 +171,7 @@ async function addRecordEvent(
 }
 
 async function buildRecordDetail(ctx: QueryCtx, record: Doc<"productionLineRecords">) {
-  const [specificationLimits, readings, checks] = await Promise.all([
+  const [specificationLimits, readings, checks, photos] = await Promise.all([
     ctx.db
       .query("productionLineSpecificationLimits")
       .withIndex("by_specificationId_and_readingKey", (q) =>
@@ -177,7 +186,12 @@ async function buildRecordDetail(ctx: QueryCtx, record: Doc<"productionLineRecor
       .query("productionLineChecks")
       .withIndex("by_recordId", (q) => q.eq("recordId", record._id))
       .take(22),
+    ctx.db
+      .query("productionLineRecordPhotos")
+      .withIndex("by_recordId", (q) => q.eq("recordId", record._id))
+      .take(maximumRecordPhotos),
   ]);
+  const photoUrls = await Promise.all(photos.map((photo) => ctx.storage.getUrl(photo.storageId)));
   const batchLabelPhotoUrl = record.batchLabelPhotoStorageId
     ? await ctx.storage.getUrl(record.batchLabelPhotoStorageId)
     : null;
@@ -213,6 +227,11 @@ async function buildRecordDetail(ctx: QueryCtx, record: Doc<"productionLineRecor
     checks: checks.map((check) => ({
       checkKey: check.checkKey,
       checked: check.checked,
+    })),
+    photos: photos.map((photo, index) => ({
+      _id: photo._id,
+      createdAt: photo.createdAt,
+      url: photoUrls[index] ?? undefined,
     })),
     batchLabelPhotoUrl: batchLabelPhotoUrl ?? undefined,
     batchLabelMimeType: record.batchLabelMimeType,
@@ -556,6 +575,74 @@ export const updateBatchLabelCode = mutation({
   },
 });
 
+export const attachRecordPhoto = mutation({
+  args: {
+    recordId: v.id("productionLineRecords"),
+    storageId: v.id("_storage"),
+  },
+  returns: v.id("productionLineRecordPhotos"),
+  handler: async (ctx, args) => {
+    const { authUser, record } = await requireEditableRecord(ctx, args.recordId);
+    const existingPhotos = await ctx.db
+      .query("productionLineRecordPhotos")
+      .withIndex("by_recordId", (q) => q.eq("recordId", record._id))
+      .take(maximumRecordPhotos);
+    if (existingPhotos.length >= maximumRecordPhotos) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error(`A record can have at most ${maximumRecordPhotos} photos`);
+    }
+    const metadata = await ctx.db.system.get("_storage", args.storageId);
+    if (!metadata) {
+      throw new Error("Uploaded record photo was not found");
+    }
+    if (!metadata.contentType || !allowedBatchLabelMimeTypes.has(metadata.contentType)) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error("Record photos must be JPEG, PNG, or WebP images");
+    }
+    if (metadata.size > maximumBatchLabelBytes) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error("Record photos must be 8 MB or smaller");
+    }
+
+    const nextRevision = record.recordRevision + 1;
+    const now = Date.now();
+    const photoId = await ctx.db.insert("productionLineRecordPhotos", {
+      recordId: record._id,
+      organizationId: record.organizationId,
+      storageId: args.storageId,
+      mimeType: metadata.contentType,
+      size: metadata.size,
+      uploadedBy: authUser._id,
+      createdAt: now,
+    });
+    await ctx.db.patch(record._id, { recordRevision: nextRevision, updatedAt: now });
+    await addRecordEvent(ctx, record, authUser, "photo.attached", nextRevision, {
+      photoId,
+    });
+    return photoId;
+  },
+});
+
+export const removeRecordPhoto = mutation({
+  args: { photoId: v.id("productionLineRecordPhotos") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const photo = await ctx.db.get(args.photoId);
+    if (!photo) {
+      throw new Error("Record photo not found");
+    }
+    const { authUser, record } = await requireEditableRecord(ctx, photo.recordId);
+    const nextRevision = record.recordRevision + 1;
+    await ctx.db.delete(photo._id);
+    await ctx.storage.delete(photo.storageId);
+    await ctx.db.patch(record._id, { recordRevision: nextRevision, updatedAt: Date.now() });
+    await addRecordEvent(ctx, record, authUser, "photo.removed", nextRevision, {
+      photoId: photo._id,
+    });
+    return null;
+  },
+});
+
 export const saveReading = mutation({
   args: {
     recordId: v.id("productionLineRecords"),
@@ -737,6 +824,7 @@ export const submitForReview = mutation({
       status: "pending_production_review",
     });
     await syncInspectionSummary(ctx, record._id);
+    await notifyReviewersOfSubmission(ctx, record, authUser);
     return null;
   },
 });
@@ -788,6 +876,7 @@ export const review = mutation({
       },
     );
     await syncInspectionSummary(ctx, record._id);
+    await notifyInspectorOfDecision(ctx, record, args.decision, note);
     return null;
   },
 });

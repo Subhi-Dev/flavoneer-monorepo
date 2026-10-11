@@ -4,10 +4,11 @@ import type {
 } from '@flavoneer/backend/production-line';
 import { AlertCircle, Check, CheckCircle2, Minus } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
-import { BrandColors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import type { ProductionLineTranslationKey } from './i18n';
 
 type Translate = (
@@ -297,7 +298,7 @@ function ReadingInput({
           {limit.unit}
         </ThemedText>
         {inputState === 'saving' ? (
-          <ActivityIndicator className="ms-2" color={BrandColors.forest} size="small" />
+          <BrandSpinner className="ms-2" />
         ) : withinLimit ? (
           <CheckCircle2 className="ms-2" color="#247A51" size={18} />
         ) : withinLimit === false || inputState === 'invalid' ? (
@@ -452,7 +453,7 @@ export function ComplianceSection({
                   {actionLabel}
                 </ThemedText>
                 {groupPending ? (
-                  <ActivityIndicator color={BrandColors.forest} size="small" />
+                  <BrandSpinner />
                 ) : groupFailed ? (
                   <AlertCircle color="#A43434" size={16} />
                 ) : null}
@@ -488,7 +489,7 @@ export function ComplianceSection({
                       {t(checkLabels[checkKey])}
                     </ThemedText>
                     {pending ? (
-                      <ActivityIndicator color={BrandColors.forest} size="small" />
+                      <BrandSpinner />
                     ) : failed ? (
                       <AlertCircle color="#A43434" size={18} />
                     ) : null}

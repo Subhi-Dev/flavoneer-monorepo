@@ -1,7 +1,7 @@
-import { Eye, EyeOff, LockKeyhole } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Eye, EyeOff, LockKeyhole, QrCode } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,6 +13,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
+import { BrandSpinner } from '@/components/brand-spinner';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Image } from '@/components/ui/image';
@@ -23,6 +24,7 @@ import { authClient } from '@/lib/backend';
 
 export default function SignInScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { isRTL, t } = useProductionLineI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -219,7 +221,7 @@ export default function SignInScreen() {
                       }}
                     >
                       {isSubmitting ? (
-                        <ActivityIndicator color={theme.primaryText} size="small" />
+                        <BrandSpinner color={theme.primaryText} />
                       ) : (
                         <ThemedText
                           className="!text-[#FFFDF4] dark:!text-[#173E33]"
@@ -228,6 +230,17 @@ export default function SignInScreen() {
                           {t('signIn')}
                         </ThemedText>
                       )}
+                    </Pressable>
+
+                    <Pressable
+                      accessibilityRole="button"
+                      className={`min-h-[56px] flex-row items-center justify-center gap-2 rounded-[19px] border active:scale-[0.98] ${isSubmitting ? 'opacity-[0.55]' : ''}`}
+                      disabled={isSubmitting}
+                      onPress={() => router.push('/enroll')}
+                      style={{ borderColor: theme.border }}
+                    >
+                      <QrCode color={theme.text} size={19} />
+                      <ThemedText type="smallBold">{t('signInWithQrCode')}</ThemedText>
                     </Pressable>
                   </View>
                 </View>

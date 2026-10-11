@@ -27,7 +27,7 @@ type OrganizationContextValue = {
 };
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null);
-const ACTIVE_ORGANIZATION_STORAGE_KEY = 'flavoneer.active-organization-id';
+export const ACTIVE_ORGANIZATION_STORAGE_KEY = 'flavoneer.active-organization-id';
 
 export function OrganizationProvider({
   children,

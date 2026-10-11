@@ -356,6 +356,34 @@ export default function ProductionLineRecordDetail() {
               </p>
             </div>
           ) : null}
+
+          {record.photos.length > 0 ? (
+            <div className="mt-6">
+              <p className="font-bold text-[#527568] text-xs uppercase tracking-[0.16em] dark:text-[#a9cbbb]">
+                {t("production_photos")}
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {record.photos.map((photo, index) =>
+                  photo.url ? (
+                    <a
+                      href={photo.url}
+                      key={photo._id}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <img
+                        alt={t("production_photo_alt", { number: index + 1 })}
+                        className="aspect-square w-full rounded-[1.1rem] bg-[#102f27] object-cover"
+                        height="240"
+                        src={photo.url}
+                        width="240"
+                      />
+                    </a>
+                  ) : null
+                )}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="rounded-[2.5rem] border border-[#1c4a3c]/10 bg-[#fffdf4] p-6 shadow-[0_18px_55px_rgba(16,47,39,0.07)] sm:p-8 dark:border-[#d2f2d4]/10 dark:bg-[#173e33]">

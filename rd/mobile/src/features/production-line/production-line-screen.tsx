@@ -1,5 +1,5 @@
 import type { Id } from '@flavoneer/backend/data-model';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import {
   ArrowUpRight,
@@ -7,10 +7,12 @@ import {
   ClipboardCheck,
   Factory,
   Plus,
+  ScanFace,
   ShieldCheck,
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
+import { BrandSpinner } from '@/components/brand-spinner';
 import { BrandEntrance, BrandHeader, BrandScreen, BrandSurface } from '@/components/brand-screen';
 import { ThemedText } from '@/components/themed-text';
 import { Image } from '@/components/ui/image';
@@ -18,6 +20,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { BrandColors, Fonts } from '@/constants/theme';
 import { useOrganization } from '@/contexts/organization-context';
 import { useProductionLineI18n } from '@/features/production-line/i18n';
+import { useProductionLineAccess } from '@/features/production-line/use-production-line-access';
 import { api, authClient } from '@/lib/backend';
 
 type HallCode = 'A' | 'B';
@@ -34,6 +37,7 @@ export default function ProductionLineScreen() {
   const { data: session } = authClient.useSession();
   const { activeOrganizationId } = useOrganization();
   const { isRTL, language, t } = useProductionLineI18n();
+  const access = useProductionLineAccess();
   const syncCurrentUser = useMutation(api.users.syncCurrentUser);
   const createDraft = useMutation(api.productionLineRecords.createDraft);
   const [showCreate, setShowCreate] = useState(false);
@@ -49,12 +53,24 @@ export default function ProductionLineScreen() {
 
   const referenceData = useQuery(
     api.productionLineRecords.getMobileReferenceData,
-    activeOrganizationId ? { organizationId: activeOrganizationId } : 'skip',
+    activeOrganizationId && access.canRecord ? { organizationId: activeOrganizationId } : 'skip',
   );
   const records = useQuery(
     api.productionLineRecords.listMine,
-    activeOrganizationId ? { organizationId: activeOrganizationId } : 'skip',
+    activeOrganizationId && access.canRecord ? { organizationId: activeOrganizationId } : 'skip',
   );
+  const reviewQueue = usePaginatedQuery(
+    api.productionLineRecords.listForReview,
+    activeOrganizationId && access.canReview
+      ? { organizationId: activeOrganizationId, status: 'pending_production_review' }
+      : 'skip',
+    { initialNumItems: 20 },
+  );
+  const formatTime = (timestamp: number) =>
+    new Intl.DateTimeFormat(language === 'ar' ? 'ar-PS' : 'en', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(timestamp);
 
   const hallCode =
     selectedHallCode && referenceData?.enabledHallCodes.includes(selectedHallCode)
@@ -117,239 +133,351 @@ export default function ProductionLineScreen() {
           </ThemedText>
         </BrandEntrance>
 
-        <BrandEntrance delay={140}>
-          <View className="relative mb-8 overflow-hidden rounded-[40px] bg-[#1C4A3C] p-7 dark:bg-[#102F27]">
-            <View className="absolute -end-16 -top-20 size-52 rounded-full border-[36px] border-[#F5A623]/15" />
-            <View className="mb-8 size-14 items-center justify-center rounded-[19px] bg-[#F5A623]">
-              <Factory color={BrandColors.ink} size={27} />
-            </View>
-            <ThemedText className="max-w-[280px] !text-[#FFFDF4]" type="display">
-              {t('newInspection')}
-            </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              className="mt-7 min-h-[56px] flex-row items-center justify-center gap-2 rounded-[19px] bg-[#F5A623] px-5 active:scale-[0.98]"
-              onPress={() => setShowCreate((value) => !value)}
-            >
-              {showCreate ? (
-                <ThemedText className="!text-[#173E33]" type="smallBold">
-                  {t('close')}
-                </ThemedText>
-              ) : (
-                <>
-                  <Plus color={BrandColors.ink} size={20} />
-                  <ThemedText className="!text-[#173E33]" type="smallBold">
-                    {t('newInspection')}
-                  </ThemedText>
-                </>
-              )}
-            </Pressable>
-          </View>
-        </BrandEntrance>
+        {activeOrganizationId && access.isLoading ? (
+          <BrandSpinner className="my-8" size="large" />
+        ) : null}
 
-        {showCreate ? (
-          <BrandEntrance delay={20}>
-            <BrandSurface className="mb-8 gap-6">
-              {!activeOrganizationId ? (
-                <SetupMessage
-                  icon={<ShieldCheck color="#8A5811" size={22} />}
-                  text={t('noOrganization')}
-                />
-              ) : referenceData === undefined ? (
-                <ActivityIndicator color={BrandColors.forest} />
-              ) : referenceData === null ? (
-                <SetupMessage
-                  detail={t('configurationHelp')}
-                  icon={<ShieldCheck color="#8A5811" size={22} />}
-                  text={t('configurationRequired')}
-                />
-              ) : referenceData.products.length === 0 ? (
-                <SetupMessage
-                  detail={t('configurationHelp')}
-                  icon={<ShieldCheck color="#8A5811" size={22} />}
-                  text={t('noConfiguredProducts')}
-                />
-              ) : (
-                <>
-                  <View>
-                    <ThemedText themeColor="textSecondary" type="overline">
-                      {t('productionHall')}
-                    </ThemedText>
-                    <View className="mt-3 flex-row gap-3">
-                      {referenceData.enabledHallCodes.map((hall) => (
-                        <Pressable
-                          accessibilityRole="button"
-                          className={`min-h-[54px] flex-1 items-center justify-center rounded-[18px] border ${
-                            hall === hallCode
-                              ? 'border-[#1C4A3C] bg-[#D2F2D4] dark:border-[#F5A623] dark:bg-[#F5A623]'
-                              : 'border-[#1C4A3C]/10 bg-[#EEF8EB] dark:border-[#D2F2D4]/10 dark:bg-[#285B4D]'
-                          }`}
-                          key={hall}
-                          onPress={() => setSelectedHallCode(hall)}
-                        >
-                          <ThemedText type="section">{hall}</ThemedText>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </View>
-
-                  <View>
-                    <ThemedText themeColor="textSecondary" type="overline">
-                      {t('departmentLine')}
-                    </ThemedText>
-                    <TextInput
-                      accessibilityLabel={t('departmentLine')}
-                      className="mt-3 min-h-[56px] rounded-[18px] border border-[#1C4A3C]/12 bg-[#EEF8EB] px-4 text-base text-[#173E33] dark:border-[#D2F2D4]/10 dark:bg-[#285B4D] dark:text-[#F7F4DF]"
-                      onChangeText={setDepartmentName}
-                      placeholder={t('departmentPlaceholder')}
-                      placeholderTextColor="#789489"
-                      style={{
-                        fontFamily: Fonts.sans,
-                        textAlign: isRTL ? 'right' : 'left',
-                        writingDirection: isRTL ? 'rtl' : 'ltr',
-                      }}
-                      value={departmentName}
-                    />
-                  </View>
-
-                  <View>
-                    <ThemedText themeColor="textSecondary" type="overline">
-                      {t('product')}
-                    </ThemedText>
-                    <View className="mt-3 gap-2">
-                      {referenceData.products.map((product) => (
-                        <Pressable
-                          accessibilityRole="button"
-                          className={`min-h-[64px] flex-row items-center gap-3 rounded-[18px] border p-2 ${
-                            product.productId === productId
-                              ? 'border-[#1C4A3C] bg-[#D2F2D4] dark:border-[#F5A623] dark:bg-[#F5A623]'
-                              : 'border-[#1C4A3C]/10 bg-[#EEF8EB] dark:border-[#D2F2D4]/10 dark:bg-[#285B4D]'
-                          }`}
-                          key={product.productId}
-                          onPress={() => setSelectedProductId(product.productId)}
-                        >
-                          {product.productPhotoUrl ? (
-                            <Image
-                              className="size-12 rounded-[14px] bg-[#DDEBE0] dark:bg-[#173E33]"
-                              contentFit="cover"
-                              source={{ uri: product.productPhotoUrl }}
-                              transition={150}
-                            />
-                          ) : null}
-                          <ThemedText className="min-w-0 flex-1" numberOfLines={2} type="smallBold">
-                            {product.productName}
-                          </ThemedText>
-                          <ThemedText themeColor="textSecondary" type="caption">
-                            {t('version', { version: product.specificationVersion })}
-                          </ThemedText>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </View>
-
-                  {createFailed ? (
-                    <ThemedText className="!text-[#A43434]" type="caption">
-                      {t('unexpectedError')}
-                    </ThemedText>
-                  ) : null}
-
-                  <Pressable
-                    accessibilityRole="button"
-                    className={`min-h-[56px] flex-row items-center justify-center gap-2 rounded-[19px] bg-[#1C4A3C] active:scale-[0.98] dark:bg-[#F5A623] ${
-                      !departmentName.trim() || isCreating ? 'opacity-50' : ''
-                    }`}
-                    disabled={!departmentName.trim() || isCreating}
-                    onPress={handleCreate}
-                  >
-                    {isCreating ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <ArrowUpRight
-                        color="white"
-                        size={19}
-                        style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
-                      />
-                    )}
-                    <ThemedText className="!text-white dark:!text-[#173E33]" type="smallBold">
-                      {isCreating ? t('creatingDraft') : t('createDraft')}
-                    </ThemedText>
-                  </Pressable>
-                </>
-              )}
+        {activeOrganizationId && !access.isLoading && !access.canRecord && !access.canReview ? (
+          <BrandEntrance delay={140}>
+            <BrandSurface className="mb-8">
+              <SetupMessage
+                detail={t('noProductionAccessHelp')}
+                icon={<ShieldCheck color="#8A5811" size={22} />}
+                text={t('noProductionAccess')}
+              />
             </BrandSurface>
           </BrandEntrance>
         ) : null}
 
-        <BrandEntrance className="mb-3 flex-row items-end justify-between px-1" delay={220}>
-          <ThemedText type="section">{t('recentRecords')}</ThemedText>
-          <ThemedText themeColor="textSecondary" type="caption">
-            {records?.length ?? 0}
-          </ThemedText>
-        </BrandEntrance>
+        {access.canReview ? (
+          <>
+            <BrandEntrance className="mb-3 flex-row items-end justify-between px-1" delay={140}>
+              <ThemedText type="section">{t('awaitingReview')}</ThemedText>
+              <ThemedText themeColor="textSecondary" type="caption">
+                {reviewQueue.results.length}
+                {reviewQueue.status === 'CanLoadMore' ? '+' : ''}
+              </ThemedText>
+            </BrandEntrance>
+            <BrandEntrance delay={180}>
+              <BrandSurface className="mb-8 !p-0">
+                {reviewQueue.status === 'LoadingFirstPage' ? (
+                  <BrandSpinner className="my-8" size="large" />
+                ) : reviewQueue.results.length === 0 ? (
+                  <View className="items-center gap-3 px-6 py-10">
+                    <ScanFace color={BrandColors.copy} size={30} />
+                    <ThemedText className="text-center" themeColor="textSecondary" type="small">
+                      {t('noRecordsAwaitingReview')}
+                    </ThemedText>
+                  </View>
+                ) : (
+                  <>
+                    {reviewQueue.results.map((record, index) => (
+                      <View key={record._id}>
+                        <Pressable
+                          accessibilityLabel={`${t('reviewRecord')} ${record.displaySerial}`}
+                          accessibilityRole="button"
+                          className="flex-row items-center gap-4 px-5 py-5 active:bg-[#D2F2D4]/35 dark:active:bg-[#D2F2D4]/10"
+                          onPress={() =>
+                            router.push(`/quality/production-line/${record._id}?review=1`)
+                          }
+                          testID="review-queue-record"
+                        >
+                          <View className="size-12 items-center justify-center rounded-[17px] bg-[#FFF0C7]">
+                            <ThemedText className="!text-[#173E33]" type="smallBold">
+                              {record.productionHallCode}
+                            </ThemedText>
+                          </View>
+                          <View className="min-w-0 flex-1">
+                            <ThemedText numberOfLines={1} type="smallBold">
+                              {record.displaySerial}
+                            </ThemedText>
+                            <ThemedText
+                              className="mt-1"
+                              numberOfLines={1}
+                              themeColor="textSecondary"
+                              type="caption"
+                            >
+                              {record.productName} · {formatTime(record.inspectionAt)}
+                            </ThemedText>
+                            <ThemedText
+                              className="mt-1"
+                              numberOfLines={1}
+                              themeColor="textSecondary"
+                              type="caption"
+                            >
+                              {t('inspectedBy', { name: record.qcUserName })}
+                            </ThemedText>
+                          </View>
+                          <ChevronRight
+                            color={BrandColors.copy}
+                            size={19}
+                            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+                          />
+                        </Pressable>
+                        {index < reviewQueue.results.length - 1 ? (
+                          <View className="ms-[84px] h-px bg-[#1C4A3C]/10 dark:bg-[#D2F2D4]/10" />
+                        ) : null}
+                      </View>
+                    ))}
+                    {reviewQueue.status === 'CanLoadMore' ||
+                    reviewQueue.status === 'LoadingMore' ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        className="min-h-[54px] items-center justify-center border-t border-[#1C4A3C]/10 dark:border-[#D2F2D4]/10"
+                        disabled={reviewQueue.status === 'LoadingMore'}
+                        onPress={() => reviewQueue.loadMore(20)}
+                      >
+                        {reviewQueue.status === 'LoadingMore' ? (
+                          <BrandSpinner />
+                        ) : (
+                          <ThemedText type="smallBold">{t('loadMore')}</ThemedText>
+                        )}
+                      </Pressable>
+                    ) : null}
+                  </>
+                )}
+              </BrandSurface>
+            </BrandEntrance>
+          </>
+        ) : null}
 
-        <BrandEntrance delay={270}>
-          <BrandSurface className="mb-8 !p-0">
-            {records === undefined ? (
-              <ActivityIndicator className="my-8" color={BrandColors.forest} />
-            ) : records.length === 0 ? (
-              <View className="items-center gap-3 px-6 py-10">
-                <ClipboardCheck color={BrandColors.copy} size={30} />
-                <ThemedText className="text-center" themeColor="textSecondary" type="small">
-                  {t('noRecords')}
+        {!activeOrganizationId || access.canRecord ? (
+          <>
+            <BrandEntrance delay={140}>
+              <View className="relative mb-8 overflow-hidden rounded-[40px] bg-[#1C4A3C] p-7 dark:bg-[#102F27]">
+                <View className="absolute -end-16 -top-20 size-52 rounded-full border-[36px] border-[#F5A623]/15" />
+                <View className="mb-8 size-14 items-center justify-center rounded-[19px] bg-[#F5A623]">
+                  <Factory color={BrandColors.ink} size={27} />
+                </View>
+                <ThemedText className="max-w-[280px] !text-[#FFFDF4]" type="display">
+                  {t('newInspection')}
                 </ThemedText>
-              </View>
-            ) : (
-              records.map((record, index) => (
-                <View key={record._id}>
-                  <Pressable
-                    accessibilityLabel={`${t('openRecord')} ${record.displaySerial}`}
-                    accessibilityRole="button"
-                    className="flex-row items-center gap-4 px-5 py-5 active:bg-[#D2F2D4]/35 dark:active:bg-[#D2F2D4]/10"
-                    onPress={() => router.push(`/quality/production-line/${record._id}`)}
-                  >
-                    <View className="size-12 items-center justify-center rounded-[17px] bg-[#D2F2D4]">
+                <Pressable
+                  accessibilityRole="button"
+                  className="mt-7 min-h-[56px] flex-row items-center justify-center gap-2 rounded-[19px] bg-[#F5A623] px-5 active:scale-[0.98]"
+                  onPress={() => setShowCreate((value) => !value)}
+                >
+                  {showCreate ? (
+                    <ThemedText className="!text-[#173E33]" type="smallBold">
+                      {t('close')}
+                    </ThemedText>
+                  ) : (
+                    <>
+                      <Plus color={BrandColors.ink} size={20} />
                       <ThemedText className="!text-[#173E33]" type="smallBold">
-                        {record.productionHallCode}
+                        {t('newInspection')}
                       </ThemedText>
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <View className="flex-row items-center gap-2">
-                        <ThemedText numberOfLines={1} type="smallBold">
-                          {record.displaySerial}
+                    </>
+                  )}
+                </Pressable>
+              </View>
+            </BrandEntrance>
+
+            {showCreate ? (
+              <BrandEntrance delay={20}>
+                <BrandSurface className="mb-8 gap-6">
+                  {!activeOrganizationId ? (
+                    <SetupMessage
+                      icon={<ShieldCheck color="#8A5811" size={22} />}
+                      text={t('noOrganization')}
+                    />
+                  ) : referenceData === undefined ? (
+                    <BrandSpinner />
+                  ) : referenceData === null ? (
+                    <SetupMessage
+                      detail={t('configurationHelp')}
+                      icon={<ShieldCheck color="#8A5811" size={22} />}
+                      text={t('configurationRequired')}
+                    />
+                  ) : referenceData.products.length === 0 ? (
+                    <SetupMessage
+                      detail={t('configurationHelp')}
+                      icon={<ShieldCheck color="#8A5811" size={22} />}
+                      text={t('noConfiguredProducts')}
+                    />
+                  ) : (
+                    <>
+                      <View>
+                        <ThemedText themeColor="textSecondary" type="overline">
+                          {t('productionHall')}
                         </ThemedText>
-                        <View className="rounded-full bg-[#EEF8EB] px-2 py-1 dark:bg-[#285B4D]">
-                          <ThemedText className="text-[10px] leading-3" type="smallBold">
-                            {t(statusKeys[record.status as keyof typeof statusKeys] ?? 'draft')}
-                          </ThemedText>
+                        <View className="mt-3 flex-row gap-3">
+                          {referenceData.enabledHallCodes.map((hall) => (
+                            <Pressable
+                              accessibilityRole="button"
+                              className={`min-h-[54px] flex-1 items-center justify-center rounded-[18px] border ${
+                                hall === hallCode
+                                  ? 'border-[#1C4A3C] bg-[#D2F2D4] dark:border-[#F5A623] dark:bg-[#F5A623]'
+                                  : 'border-[#1C4A3C]/10 bg-[#EEF8EB] dark:border-[#D2F2D4]/10 dark:bg-[#285B4D]'
+                              }`}
+                              key={hall}
+                              onPress={() => setSelectedHallCode(hall)}
+                            >
+                              <ThemedText type="section">{hall}</ThemedText>
+                            </Pressable>
+                          ))}
                         </View>
                       </View>
-                      <ThemedText
-                        className="mt-1"
-                        numberOfLines={1}
-                        themeColor="textSecondary"
-                        type="caption"
+
+                      <View>
+                        <ThemedText themeColor="textSecondary" type="overline">
+                          {t('departmentLine')}
+                        </ThemedText>
+                        <TextInput
+                          accessibilityLabel={t('departmentLine')}
+                          className="mt-3 min-h-[56px] rounded-[18px] border border-[#1C4A3C]/12 bg-[#EEF8EB] px-4 text-base text-[#173E33] dark:border-[#D2F2D4]/10 dark:bg-[#285B4D] dark:text-[#F7F4DF]"
+                          onChangeText={setDepartmentName}
+                          placeholder={t('departmentPlaceholder')}
+                          placeholderTextColor="#789489"
+                          style={{
+                            fontFamily: Fonts.sans,
+                            textAlign: isRTL ? 'right' : 'left',
+                            writingDirection: isRTL ? 'rtl' : 'ltr',
+                          }}
+                          value={departmentName}
+                        />
+                      </View>
+
+                      <View>
+                        <ThemedText themeColor="textSecondary" type="overline">
+                          {t('product')}
+                        </ThemedText>
+                        <View className="mt-3 gap-2">
+                          {referenceData.products.map((product) => (
+                            <Pressable
+                              accessibilityRole="button"
+                              className={`min-h-[64px] flex-row items-center gap-3 rounded-[18px] border p-2 ${
+                                product.productId === productId
+                                  ? 'border-[#1C4A3C] bg-[#D2F2D4] dark:border-[#F5A623] dark:bg-[#F5A623]'
+                                  : 'border-[#1C4A3C]/10 bg-[#EEF8EB] dark:border-[#D2F2D4]/10 dark:bg-[#285B4D]'
+                              }`}
+                              key={product.productId}
+                              onPress={() => setSelectedProductId(product.productId)}
+                            >
+                              {product.productPhotoUrl ? (
+                                <Image
+                                  className="size-12 rounded-[14px] bg-[#DDEBE0] dark:bg-[#173E33]"
+                                  contentFit="cover"
+                                  source={{ uri: product.productPhotoUrl }}
+                                  transition={150}
+                                />
+                              ) : null}
+                              <ThemedText
+                                className="min-w-0 flex-1"
+                                numberOfLines={2}
+                                type="smallBold"
+                              >
+                                {product.productName}
+                              </ThemedText>
+                              <ThemedText themeColor="textSecondary" type="caption">
+                                {t('version', { version: product.specificationVersion })}
+                              </ThemedText>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+
+                      {createFailed ? (
+                        <ThemedText className="!text-[#A43434]" type="caption">
+                          {t('unexpectedError')}
+                        </ThemedText>
+                      ) : null}
+
+                      <Pressable
+                        accessibilityRole="button"
+                        className={`min-h-[56px] flex-row items-center justify-center gap-2 rounded-[19px] bg-[#1C4A3C] active:scale-[0.98] dark:bg-[#F5A623] ${
+                          !departmentName.trim() || isCreating ? 'opacity-50' : ''
+                        }`}
+                        disabled={!departmentName.trim() || isCreating}
+                        onPress={handleCreate}
                       >
-                        {record.productName} ·{' '}
-                        {new Intl.DateTimeFormat(language === 'ar' ? 'ar-PS' : 'en', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        }).format(record.inspectionAt)}
-                      </ThemedText>
+                        {isCreating ? (
+                          <BrandSpinner color="white" />
+                        ) : (
+                          <ArrowUpRight
+                            color="white"
+                            size={19}
+                            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+                          />
+                        )}
+                        <ThemedText className="!text-white dark:!text-[#173E33]" type="smallBold">
+                          {isCreating ? t('creatingDraft') : t('createDraft')}
+                        </ThemedText>
+                      </Pressable>
+                    </>
+                  )}
+                </BrandSurface>
+              </BrandEntrance>
+            ) : null}
+
+            <BrandEntrance className="mb-3 flex-row items-end justify-between px-1" delay={220}>
+              <ThemedText type="section">{t('recentRecords')}</ThemedText>
+              <ThemedText themeColor="textSecondary" type="caption">
+                {records?.length ?? 0}
+              </ThemedText>
+            </BrandEntrance>
+
+            <BrandEntrance delay={270}>
+              <BrandSurface className="mb-8 !p-0">
+                {records === undefined ? (
+                  <BrandSpinner className="my-8" size="large" />
+                ) : records.length === 0 ? (
+                  <View className="items-center gap-3 px-6 py-10">
+                    <ClipboardCheck color={BrandColors.copy} size={30} />
+                    <ThemedText className="text-center" themeColor="textSecondary" type="small">
+                      {t('noRecords')}
+                    </ThemedText>
+                  </View>
+                ) : (
+                  records.map((record, index) => (
+                    <View key={record._id}>
+                      <Pressable
+                        accessibilityLabel={`${t('openRecord')} ${record.displaySerial}`}
+                        accessibilityRole="button"
+                        className="flex-row items-center gap-4 px-5 py-5 active:bg-[#D2F2D4]/35 dark:active:bg-[#D2F2D4]/10"
+                        onPress={() => router.push(`/quality/production-line/${record._id}`)}
+                      >
+                        <View className="size-12 items-center justify-center rounded-[17px] bg-[#D2F2D4]">
+                          <ThemedText className="!text-[#173E33]" type="smallBold">
+                            {record.productionHallCode}
+                          </ThemedText>
+                        </View>
+                        <View className="min-w-0 flex-1">
+                          <View className="flex-row items-center gap-2">
+                            <ThemedText numberOfLines={1} type="smallBold">
+                              {record.displaySerial}
+                            </ThemedText>
+                            <View className="rounded-full bg-[#EEF8EB] px-2 py-1 dark:bg-[#285B4D]">
+                              <ThemedText className="text-[10px] leading-3" type="smallBold">
+                                {t(statusKeys[record.status as keyof typeof statusKeys] ?? 'draft')}
+                              </ThemedText>
+                            </View>
+                          </View>
+                          <ThemedText
+                            className="mt-1"
+                            numberOfLines={1}
+                            themeColor="textSecondary"
+                            type="caption"
+                          >
+                            {record.productName} · {formatTime(record.inspectionAt)}
+                          </ThemedText>
+                        </View>
+                        <ChevronRight
+                          color={BrandColors.copy}
+                          size={19}
+                          style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+                        />
+                      </Pressable>
+                      {index < records.length - 1 ? (
+                        <View className="ms-[84px] h-px bg-[#1C4A3C]/10 dark:bg-[#D2F2D4]/10" />
+                      ) : null}
                     </View>
-                    <ChevronRight
-                      color={BrandColors.copy}
-                      size={19}
-                      style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
-                    />
-                  </Pressable>
-                  {index < records.length - 1 ? (
-                    <View className="ms-[84px] h-px bg-[#1C4A3C]/10 dark:bg-[#D2F2D4]/10" />
-                  ) : null}
-                </View>
-              ))
-            )}
-          </BrandSurface>
-        </BrandEntrance>
+                  ))
+                )}
+              </BrandSurface>
+            </BrandEntrance>
+          </>
+        ) : null}
       </View>
     </BrandScreen>
   );

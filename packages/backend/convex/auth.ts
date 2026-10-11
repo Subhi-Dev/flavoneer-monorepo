@@ -12,6 +12,7 @@ import type { DataModel } from "./_generated/dataModel";
 import { env, query } from "./_generated/server";
 import authConfig from "./auth.config";
 import authSchema from "./betterAuth/schema";
+import { mobileEnrollment } from "./mobileEnrollment";
 
 export const backendAuthEnv = createBackendAuthEnv({
   BETTER_AUTH_URL: env.BETTER_AUTH_URL,
@@ -101,6 +102,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) =>
         },
       }),
       oneTimeToken({ expiresIn: 3 }),
+      mobileEnrollment(),
       crossDomain({ siteUrl }),
       convex({ authConfig }),
     ],

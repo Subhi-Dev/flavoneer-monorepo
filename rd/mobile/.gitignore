@@ -34,12 +34,8 @@ yarn-error.*
 # local env files
 .env*.local
 .env
-.env.hotupdater
 .env.xprem
 !.env.xprem.example
-
-# Hot Updater build output
-.hot-updater/output/
 
 # typescript
 *.tsbuildinfo
