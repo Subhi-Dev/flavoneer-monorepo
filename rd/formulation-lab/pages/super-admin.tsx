@@ -12,8 +12,8 @@ import {
   ChevronDown,
   CircleDot,
   Command,
-  Flag,
   Factory,
+  Flag,
   Loader2,
   Plus,
   Search,
@@ -26,8 +26,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Switch } from "../components/ui/Switch";
 import { FactoryLayoutAdminView } from "../components/super-admin/FactoryLayoutAdminView";
+import { Switch } from "../components/ui/Switch";
 
 type AdminOverview = FunctionReturnType<typeof api.superAdmin.getOverview>;
 type OrganizationRow = AdminOverview["organizations"][number];

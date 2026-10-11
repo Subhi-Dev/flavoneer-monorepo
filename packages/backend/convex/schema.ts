@@ -1,6 +1,10 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
+  factoryConnectionKindValidator,
+  factoryMachineAssetKeyValidator,
+} from "./factoryLayoutValidators";
+import {
   hotUpdaterBundleDocumentValidator,
   hotUpdaterBundlePatchDocumentValidator,
 } from "./hotUpdaterValidators";
@@ -44,10 +48,6 @@ import {
   versionSnapshotPhasesValidator,
   versionTagValidator,
 } from "./validators";
-import {
-  factoryConnectionKindValidator,
-  factoryMachineAssetKeyValidator,
-} from "./factoryLayoutValidators";
 
 export default defineSchema({
   hotUpdaterBundles: defineTable(hotUpdaterBundleDocumentValidator)

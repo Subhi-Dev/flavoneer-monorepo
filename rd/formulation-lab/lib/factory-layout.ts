@@ -12,10 +12,10 @@ export type FactoryMachineAssetKey = (typeof factoryMachineAssetKeys)[number];
 export type FactoryConnectionKind = "pipe" | "conveyor" | "materialFlow";
 
 export interface FactoryLayoutMachine {
-  machineKey: string;
   assetKey: FactoryMachineAssetKey;
-  label: string;
   color: string;
+  label: string;
+  machineKey: string;
   positionX: number;
   positionY: number;
   positionZ: number;
@@ -26,32 +26,32 @@ export interface FactoryLayoutMachine {
 }
 
 export interface FactoryLayoutConnection {
-  connectionKey: string;
-  kind: FactoryConnectionKind;
-  fromMachineKey: string;
-  toMachineKey: string;
   color: string;
+  connectionKey: string;
+  fromMachineKey: string;
   height: number;
+  kind: FactoryConnectionKind;
   sortOrder: number;
+  toMachineKey: string;
   visible: boolean;
 }
 
 export interface FactoryLayoutZone {
-  zoneKey: string;
-  label: string;
   color: string;
+  depth: number;
+  label: string;
   positionX: number;
   positionZ: number;
-  width: number;
-  depth: number;
   sortOrder: number;
   visible: boolean;
+  width: number;
+  zoneKey: string;
 }
 
 export interface FactoryLayoutDefinition {
-  name: string;
-  machines: FactoryLayoutMachine[];
   connections: FactoryLayoutConnection[];
+  machines: FactoryLayoutMachine[];
+  name: string;
   zones: FactoryLayoutZone[];
 }
 
@@ -65,6 +65,56 @@ export const factoryAssetLabels: Record<FactoryMachineAssetKey, string> = {
   "continuous-spray-sterilizer": "Continuous spray sterilizer",
 };
 
+/** Non-equipment authoring helpers that must not affect GLB normalization. */
+export const factoryAssetIgnoredSceneNodeNames: Partial<
+  Record<FactoryMachineAssetKey, readonly string[]>
+> = {
+  "tomato-paste-pasteurizer": ["StudioFloor"],
+};
+
+export interface FactoryAssetPhysicalEnvelopeMeters {
+  depth: number;
+  height: number;
+  width: number;
+}
+
+/**
+ * Operational envelopes in metres. Width and depth describe the installed
+ * machine footprint before the mandatory personnel safety clearance is added.
+ */
+export const factoryAssetPhysicalEnvelopesMeters: Record<
+  FactoryMachineAssetKey,
+  FactoryAssetPhysicalEnvelopeMeters
+> = {
+  "tomato-paste-pasteurizer": { width: 4.6, depth: 1.8, height: 2.65 },
+  "jacketed-mixing-tank": { width: 2.4, depth: 2.4, height: 3.35 },
+  "process-tank": { width: 2.5, depth: 2.5, height: 3.55 },
+  "mixer-homogenizer": { width: 2.2, depth: 1.8, height: 2.75 },
+  "sauce-filling-machine": { width: 4.2, depth: 2, height: 2.8 },
+  "container-sanitizer": { width: 5, depth: 1.8, height: 2.7 },
+  "continuous-spray-sterilizer": { width: 6.8, depth: 2.6, height: 3.1 },
+};
+
+export const factoryMachineSafetyClearanceMeters = 1.2;
+
+/**
+ * Approximate real-world longest dimension used to normalize differently-authored
+ * GLB files into one coherent factory scale. The editable machine `scale` remains
+ * a fine-tuning multiplier on top of this physical envelope.
+ */
+export const factoryAssetTargetMaxDimensionMeters: Record<
+  FactoryMachineAssetKey,
+  number
+> = {
+  "tomato-paste-pasteurizer": 4.6,
+  "jacketed-mixing-tank": 3.4,
+  "process-tank": 3.6,
+  "mixer-homogenizer": 2.8,
+  "sauce-filling-machine": 4.4,
+  "container-sanitizer": 5,
+  "continuous-spray-sterilizer": 6.8,
+};
+
 export const referenceFactoryLayout: FactoryLayoutDefinition = {
   name: "Flavoneer reference production line",
   zones: [
@@ -72,10 +122,10 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       zoneKey: "thermal-processing",
       label: "Thermal processing",
       color: "#ead9f8",
-      positionX: 1.5,
-      positionZ: -8,
-      width: 12,
-      depth: 7,
+      positionX: 0,
+      positionZ: -10.2,
+      width: 18,
+      depth: 11.8,
       sortOrder: 0,
       visible: true,
     },
@@ -83,10 +133,10 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       zoneKey: "mixing-transfer",
       label: "Mixing & transfer",
       color: "#d9edf7",
-      positionX: 2,
+      positionX: 0,
       positionZ: -0.5,
-      width: 10,
-      depth: 6,
+      width: 14,
+      depth: 5,
       sortOrder: 1,
       visible: true,
     },
@@ -95,9 +145,9 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       label: "Packaging & sanitation",
       color: "#ffe3bc",
       positionX: 0,
-      positionZ: 8,
-      width: 21,
-      depth: 10,
+      positionZ: 9.5,
+      width: 26,
+      depth: 12,
       sortOrder: 2,
       visible: true,
     },
@@ -105,11 +155,22 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       zoneKey: "spice-prep",
       label: "Spice & prep room",
       color: "#d2f2d4",
-      positionX: 8.5,
-      positionZ: -9.5,
+      positionX: 12.2,
+      positionZ: -11.2,
       width: 4,
-      depth: 4,
+      depth: 4.6,
       sortOrder: 3,
+      visible: true,
+    },
+    {
+      zoneKey: "service-corridor",
+      label: "Service corridor",
+      color: "#e4eee8",
+      positionX: 12.2,
+      positionZ: -3.9,
+      width: 4,
+      depth: 7.2,
+      sortOrder: 4,
       visible: true,
     },
   ],
@@ -119,11 +180,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "tomato-paste-pasteurizer",
       label: "Horizontal pasteurizer",
       color: "#a56cc1",
-      positionX: -2.8,
+      positionX: -5.2,
       positionY: 0,
-      positionZ: -8.2,
+      positionZ: -11.8,
       rotationY: 1.57,
-      scale: 0.9,
+      scale: 1.2,
       sortOrder: 0,
       visible: true,
     },
@@ -132,11 +193,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "jacketed-mixing-tank",
       label: "Jacketed mixing tank",
       color: "#bd8bcc",
-      positionX: 0.5,
+      positionX: 0,
       positionY: 0,
-      positionZ: -6.3,
+      positionZ: -7.3,
       rotationY: 0.2,
-      scale: 0.88,
+      scale: 1,
       sortOrder: 1,
       visible: true,
     },
@@ -145,11 +206,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "process-tank",
       label: "Buffer tank",
       color: "#cf9ed8",
-      positionX: 4.2,
+      positionX: 5.5,
       positionY: 0,
-      positionZ: -6.2,
+      positionZ: -7.4,
       rotationY: -0.3,
-      scale: 0.82,
+      scale: 1,
       sortOrder: 2,
       visible: true,
     },
@@ -158,11 +219,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "mixer-homogenizer",
       label: "Homogenizer",
       color: "#f5a623",
-      positionX: 5,
+      positionX: 4,
       positionY: 0,
-      positionZ: -9.2,
+      positionZ: -12.7,
       rotationY: -0.5,
-      scale: 0.78,
+      scale: 1,
       sortOrder: 3,
       visible: true,
     },
@@ -171,11 +232,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "process-tank",
       label: "Mixing tank with agitators",
       color: "#73a9c2",
-      positionX: 1.7,
+      positionX: 0,
       positionY: 0,
-      positionZ: -0.8,
-      rotationY: 0.35,
-      scale: 0.9,
+      positionZ: -0.5,
+      rotationY: 0,
+      scale: 1,
       sortOrder: 4,
       visible: true,
     },
@@ -184,11 +245,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "sauce-filling-machine",
       label: "Sauce filling machine",
       color: "#ffb965",
-      positionX: -5.7,
+      positionX: -8,
       positionY: 0,
-      positionZ: 6.5,
+      positionZ: 9.5,
       rotationY: 0,
-      scale: 0.92,
+      scale: 1,
       sortOrder: 5,
       visible: true,
     },
@@ -197,11 +258,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "container-sanitizer",
       label: "Container sanitizing tunnel",
       color: "#ff8f5e",
-      positionX: 0,
+      positionX: -0.5,
       positionY: 0,
-      positionZ: 8.8,
+      positionZ: 9.5,
       rotationY: 0,
-      scale: 0.88,
+      scale: 1,
       sortOrder: 6,
       visible: true,
     },
@@ -210,11 +271,11 @@ export const referenceFactoryLayout: FactoryLayoutDefinition = {
       assetKey: "continuous-spray-sterilizer",
       label: "Continuous spray sterilizer",
       color: "#f5a623",
-      positionX: 5.8,
+      positionX: 7.8,
       positionY: 0,
-      positionZ: 8.7,
+      positionZ: 9.5,
       rotationY: 0,
-      scale: 0.92,
+      scale: 1,
       sortOrder: 7,
       visible: true,
     },

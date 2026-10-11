@@ -7,11 +7,11 @@ import {
   Factory,
   Link2,
   Loader2,
-  Map,
+  Map as MapIcon,
   RotateCcw,
   Save,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -24,6 +24,10 @@ import {
   factoryMachineAssetKeys,
   referenceFactoryLayout,
 } from "../../lib/factory-layout";
+import {
+  Factory3DGuard,
+  Factory3DLoadingState,
+} from "../production-monitoring/factory3d-guard";
 
 interface OrganizationOption {
   _id: Id<"organizations">;
@@ -34,6 +38,10 @@ const cardClass =
   "rounded-[2rem] border border-[#1c4a3c]/10 bg-[#fffdf4]/95 shadow-[0_18px_45px_rgba(16,47,39,0.07)] dark:border-[#d2f2d4]/10 dark:bg-[#143d32]/95";
 const inputClass =
   "w-full rounded-xl border border-[#1c4a3c]/12 bg-[#eef8eb]/75 px-3 py-2 text-[#173e33] text-sm outline-none focus:border-[#ff7738]/60 focus:ring-4 focus:ring-[#ff7738]/10 dark:border-[#d2f2d4]/10 dark:bg-[#102f27] dark:text-[#f7f4df]";
+const ignoreMachineSelection = () => undefined;
+const FactoryDigitalTwin = lazy(
+  () => import("../production-monitoring/FactoryDigitalTwin")
+);
 
 type SuperAdminLayoutResult = FunctionReturnType<
   typeof api.factoryLayouts.getForSuperAdmin
@@ -246,7 +254,9 @@ export function FactoryLayoutAdminView({
             </label>
             <button
               className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#1c4a3c]/15 px-4 py-2.5 font-bold text-[#1c4a3c] text-sm dark:border-[#d2f2d4]/10 dark:text-[#d2f2d4]"
-              onClick={() => setDraft(cloneFactoryLayout(referenceFactoryLayout))}
+              onClick={() =>
+                setDraft(cloneFactoryLayout(referenceFactoryLayout))
+              }
               type="button"
             >
               <RotateCcw size={16} />
@@ -258,7 +268,11 @@ export function FactoryLayoutAdminView({
               onClick={handleSave}
               type="button"
             >
-              {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+              {saving ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                <Save size={16} />
+              )}
               {t("factory_layout_assign")}
             </button>
           </div>
@@ -284,6 +298,26 @@ export function FactoryLayoutAdminView({
                 value={draft.name}
               />
             </label>
+          </div>
+
+          <div
+            className={`${cardClass} h-[32rem] overflow-hidden bg-[#102f27]`}
+          >
+            <Factory3DGuard
+              resetKey={`${draft.name}:${draft.machines
+                .map((machine) => `${machine.machineKey}:${machine.assetKey}`)
+                .join("|")}`}
+            >
+              <Suspense fallback={<Factory3DLoadingState />}>
+                <FactoryDigitalTwin
+                  connections={draft.connections}
+                  machines={draft.machines}
+                  onSelectMachine={ignoreMachineSelection}
+                  selectedMachineKey={null}
+                  zones={draft.zones}
+                />
+              </Suspense>
+            </Factory3DGuard>
           </div>
 
           <div className={`${cardClass} overflow-hidden`}>
@@ -352,12 +386,14 @@ export function FactoryLayoutAdminView({
                       value={machine.color}
                     />
                   </label>
-                  {([
-                    ["X", "positionX", machine.positionX],
-                    ["Z", "positionZ", machine.positionZ],
-                    [t("scale"), "scale", machine.scale],
-                    [t("rotation"), "rotationY", machine.rotationY],
-                  ] as const).map(([label, key, value]) => (
+                  {(
+                    [
+                      ["X", "positionX", machine.positionX],
+                      ["Z", "positionZ", machine.positionZ],
+                      [t("scale"), "scale", machine.scale],
+                      [t("rotation"), "rotationY", machine.rotationY],
+                    ] as const
+                  ).map(([label, key, value]) => (
                     <label
                       className="font-bold text-[#527568] text-[11px] dark:text-[#a9cbbb]"
                       key={key}
@@ -391,12 +427,17 @@ export function FactoryLayoutAdminView({
               </div>
               <div className="max-h-[34rem] divide-y divide-[#1c4a3c]/8 overflow-y-auto dark:divide-[#d2f2d4]/8">
                 {draft.connections.map((connection, index) => (
-                  <div className="grid grid-cols-2 gap-3 p-4" key={connection.connectionKey}>
+                  <div
+                    className="grid grid-cols-2 gap-3 p-4"
+                    key={connection.connectionKey}
+                  >
                     <label className="col-span-2 flex items-center gap-2 font-bold text-[#527568] text-xs dark:text-[#a9cbbb]">
                       <input
                         checked={connection.visible}
                         onChange={(event) =>
-                          updateConnection(index, { visible: event.target.checked })
+                          updateConnection(index, {
+                            visible: event.target.checked,
+                          })
                         }
                         type="checkbox"
                       />
@@ -406,14 +447,21 @@ export function FactoryLayoutAdminView({
                       className={inputClass}
                       onChange={(event) =>
                         updateConnection(index, {
-                          kind: event.target.value as FactoryLayoutConnection["kind"],
+                          kind: event.target
+                            .value as FactoryLayoutConnection["kind"],
                         })
                       }
                       value={connection.kind}
                     >
-                      <option value="pipe">{t("factory_connection_pipe")}</option>
-                      <option value="conveyor">{t("factory_connection_conveyor")}</option>
-                      <option value="materialFlow">{t("factory_connection_flow")}</option>
+                      <option value="pipe">
+                        {t("factory_connection_pipe")}
+                      </option>
+                      <option value="conveyor">
+                        {t("factory_connection_conveyor")}
+                      </option>
+                      <option value="materialFlow">
+                        {t("factory_connection_flow")}
+                      </option>
                     </select>
                     <input
                       className="h-10 w-full rounded-xl border border-[#1c4a3c]/12 bg-transparent p-1"
@@ -433,7 +481,10 @@ export function FactoryLayoutAdminView({
                       value={connection.fromMachineKey}
                     >
                       {draft.machines.map((machine) => (
-                        <option key={machine.machineKey} value={machine.machineKey}>
+                        <option
+                          key={machine.machineKey}
+                          value={machine.machineKey}
+                        >
                           {machine.label}
                         </option>
                       ))}
@@ -448,7 +499,10 @@ export function FactoryLayoutAdminView({
                       value={connection.toMachineKey}
                     >
                       {draft.machines.map((machine) => (
-                        <option key={machine.machineKey} value={machine.machineKey}>
+                        <option
+                          key={machine.machineKey}
+                          value={machine.machineKey}
+                        >
                           {machine.label}
                         </option>
                       ))}
@@ -460,14 +514,17 @@ export function FactoryLayoutAdminView({
 
             <div className={`${cardClass} overflow-hidden`}>
               <div className="flex items-center gap-3 border-[#1c4a3c]/10 border-b px-5 py-4 dark:border-[#d2f2d4]/10">
-                <Map className="text-[#73a9c2]" size={19} />
+                <MapIcon className="text-[#73a9c2]" size={19} />
                 <h3 className="font-bold text-[#173e33] dark:text-[#f7f4df]">
                   {t("factory_layout_zones")}
                 </h3>
               </div>
               <div className="divide-y divide-[#1c4a3c]/8 dark:divide-[#d2f2d4]/8">
                 {draft.zones.map((zone, index) => (
-                  <div className="grid grid-cols-[auto_1fr_72px] gap-3 p-4" key={zone.zoneKey}>
+                  <div
+                    className="grid grid-cols-[auto_1fr_72px] gap-3 p-4"
+                    key={zone.zoneKey}
+                  >
                     <input
                       checked={zone.visible}
                       className="self-center"

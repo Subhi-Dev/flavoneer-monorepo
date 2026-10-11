@@ -12,6 +12,13 @@ export default defineConfig({
     host: "0.0.0.0",
   },
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: [
+      "three",
+      "three/examples/jsm/controls/OrbitControls.js",
+      "three/examples/jsm/loaders/GLTFLoader.js",
+    ],
+  },
   resolve: {
     dedupe: ["react", "react-dom"],
     alias: {

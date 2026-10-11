@@ -1550,7 +1550,11 @@
   "factory_connection_conveyor": "سير ناقل",
   "factory_connection_flow": "تدفق المواد",
   "visible": "ظاهر",
-  "color": "اللون",
   "scale": "المقياس",
-  "rotation": "الدوران"
+  "rotation": "الدوران",
+  "factory_3d_loading": "جارٍ تحميل المصنع ثلاثي الأبعاد...",
+  "factory_3d_error_title": "تعذر تحميل عرض المصنع ثلاثي الأبعاد",
+  "factory_3d_error_help": "تحقق من دعم الرسوميات في المتصفح ومن استجابة ملفات النماذج، ثم أعد المحاولة. ستبقى بقية مساحة العمل متاحة.",
+  "factory_3d_error_details": "التفاصيل التقنية",
+  "factory_3d_retry": "إعادة محاولة العرض ثلاثي الأبعاد"
 }

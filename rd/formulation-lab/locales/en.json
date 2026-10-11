@@ -1550,7 +1550,11 @@
   "factory_connection_conveyor": "Conveyor belt",
   "factory_connection_flow": "Material flow",
   "visible": "Visible",
-  "color": "Color",
   "scale": "Scale",
-  "rotation": "Rotation"
+  "rotation": "Rotation",
+  "factory_3d_loading": "Loading the 3D factory...",
+  "factory_3d_error_title": "The 3D factory view could not load",
+  "factory_3d_error_help": "Check browser graphics support and the model asset response, then retry. The rest of the workspace remains available.",
+  "factory_3d_error_details": "Technical details",
+  "factory_3d_retry": "Retry 3D view"
 }

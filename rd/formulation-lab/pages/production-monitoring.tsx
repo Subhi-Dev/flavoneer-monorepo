@@ -13,10 +13,13 @@ import {
   Orbit,
   Route,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { FactoryDigitalTwin } from "../components/production-monitoring/FactoryDigitalTwin";
+import {
+  Factory3DGuard,
+  Factory3DLoadingState,
+} from "../components/production-monitoring/factory3d-guard";
 import { useOrganization } from "../context/OrganizationContext";
 import {
   type FactoryLayoutDefinition,
@@ -25,6 +28,9 @@ import {
 
 const panelClass =
   "rounded-[2rem] border border-[#1c4a3c]/10 bg-[#fffdf4]/95 shadow-[0_22px_60px_rgba(16,47,39,0.09)] dark:border-[#d2f2d4]/10 dark:bg-[#143d32]/95";
+const FactoryDigitalTwin = lazy(
+  () => import("../components/production-monitoring/FactoryDigitalTwin")
+);
 
 export default function ProductionMonitoring() {
   const { t } = useTranslation();
@@ -56,6 +62,9 @@ export default function ProductionMonitoring() {
   const selectedMachine = definition.machines.find(
     (machine) => machine.machineKey === selectedMachineKey
   );
+  const sceneResetKey = `${definition.name}:${definition.machines
+    .map((machine) => `${machine.machineKey}:${machine.assetKey}`)
+    .join("|")}`;
   const activeOrganization = organizations.find(
     (organization) => organization._id === activeOrganizationId
   );
@@ -70,7 +79,9 @@ export default function ProductionMonitoring() {
 
   if (!activeOrganizationId) {
     return (
-      <section className={`${panelClass} grid min-h-[28rem] place-items-center p-8 text-center`}>
+      <section
+        className={`${panelClass} grid min-h-[28rem] place-items-center p-8 text-center`}
+      >
         <div>
           <Factory className="mx-auto text-[#f5a623]" size={44} />
           <h1 className="mt-4 font-display font-semibold text-3xl text-[#173e33] dark:text-[#f7f4df]">
@@ -88,7 +99,7 @@ export default function ProductionMonitoring() {
     <div
       className={
         isFullScreen
-          ? "fixed inset-0 z-[80] overflow-y-auto bg-[#eef8eb] p-3 dark:bg-[#0d2b24] sm:p-5"
+          ? "fixed inset-0 z-[80] overflow-y-auto bg-[#eef8eb] p-3 sm:p-5 dark:bg-[#0d2b24]"
           : "space-y-5"
       }
     >
@@ -160,7 +171,7 @@ export default function ProductionMonitoring() {
             },
           ].map(({ icon: Icon, label, value }) => (
             <div
-              className="flex items-center gap-3 border-[#1c4a3c]/10 border-b px-5 py-3 last:border-b-0 sm:border-e sm:border-b-0 sm:last:border-e-0 rtl:sm:border-e-0 rtl:sm:border-s dark:border-[#d2f2d4]/10"
+              className="flex items-center gap-3 border-[#1c4a3c]/10 border-b px-5 py-3 last:border-b-0 sm:border-e sm:border-b-0 sm:last:border-e-0 rtl:sm:border-s rtl:sm:border-e-0 dark:border-[#d2f2d4]/10"
               key={label}
             >
               <span className="grid size-9 place-items-center rounded-xl bg-[#d2f2d4] text-[#1c4a3c] dark:bg-[#285b4d] dark:text-[#d2f2d4]">
@@ -180,16 +191,22 @@ export default function ProductionMonitoring() {
 
         <div
           className={`relative overflow-hidden bg-[#102f27] ${
-            isFullScreen ? "h-[calc(100dvh-15rem)] min-h-[34rem]" : "h-[68dvh] min-h-[34rem] max-h-[52rem]"
+            isFullScreen
+              ? "h-[calc(100dvh-15rem)] min-h-[34rem]"
+              : "h-[68dvh] max-h-[52rem] min-h-[34rem]"
           }`}
         >
-          <FactoryDigitalTwin
-            connections={definition.connections}
-            machines={definition.machines}
-            onSelectMachine={handleSelectMachine}
-            selectedMachineKey={selectedMachineKey}
-            zones={definition.zones}
-          />
+          <Factory3DGuard resetKey={sceneResetKey}>
+            <Suspense fallback={<Factory3DLoadingState />}>
+              <FactoryDigitalTwin
+                connections={definition.connections}
+                machines={definition.machines}
+                onSelectMachine={handleSelectMachine}
+                selectedMachineKey={selectedMachineKey}
+                zones={definition.zones}
+              />
+            </Suspense>
+          </Factory3DGuard>
 
           <div className="pointer-events-none absolute start-4 top-4 flex flex-col gap-2">
             <span className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-[#0d2b24]/80 px-3 py-2 font-bold text-[11px] text-white shadow-lg backdrop-blur-md">

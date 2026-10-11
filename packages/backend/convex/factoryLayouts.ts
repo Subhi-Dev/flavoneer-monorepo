@@ -134,9 +134,7 @@ export const saveForOrganization = mutation({
     if (machineKeys.size !== args.machines.length || machineKeys.has("")) {
       throw new Error("Machine keys must be unique and non-empty");
     }
-    const connectionKeys = new Set(
-      args.connections.map((connection) => connection.connectionKey),
-    );
+    const connectionKeys = new Set(args.connections.map((connection) => connection.connectionKey));
     if (connectionKeys.size !== args.connections.length || connectionKeys.has("")) {
       throw new Error("Connection keys must be unique and non-empty");
     }
