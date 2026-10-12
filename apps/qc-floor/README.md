@@ -1,7 +1,9 @@
 # QC production floor
 
-Desktop 3D overview for production halls 1 and 2. The layouts are schematic, while machine GLBs use
-the metric envelopes recorded in `assets/references/*/manifest.json`.
+Desktop 3D overview of an organization's factory. Each organization sees the factory a super admin
+assigned to it on the lab's super admin page (3D factories tab). Organizations without an
+assignment see the default factory, `DEFAULT_FACTORY_BASE_KEY` in `packages/backend/lib/factory-bases.ts`. The layouts are schematic, while
+machine GLBs use the metric envelopes recorded in `assets/references/*/manifest.json`.
 
 ## Run
 
@@ -48,10 +50,30 @@ statistics for the last 24 hours. Layout names are matched to QC department name
 spaces and punctuation, so `BTC-1` matches `BTC1`. A line with no matching inspection is shown as
 "No inspection data."
 
-## Layout updates
+## Factories
 
-Edit `src/floor/factory-layout.ts` to change hall bounds, line zones, or equipment placement. Edit
-`src/floor/machine-catalog.ts` only when a runtime asset or its verified metric envelope changes.
+Each factory has its own folder:
+
+| Factory | Code | Models |
+| --- | --- | --- |
+| Ice cream plant (halls 1 and 2) | `src/factories/ice-cream-plant/` | `public/factories/ice-cream-plant/models/` |
+| Sauce plant (sauce line) | `src/factories/sauce-plant/` | `public/factories/sauce-plant/models/` |
+
+In each folder, `layout.ts` holds hall bounds, line zones, equipment placement and pipe or conveyor
+connections. `assets.ts` lists the models and their metric envelopes. Models that were not authored
+in metres set `fit` so they are scaled to their envelope when they load.
+
+To add a factory:
+
+1. Add its key to `FACTORY_BASE_KEYS` and `FACTORY_BASE_NAMES` in `packages/backend/lib/factory-bases.ts`.
+2. Create `src/factories/<key>/` with `assets.ts`, `layout.ts` and `index.ts`, and put its models in
+   `public/factories/<key>/models/`.
+3. Register it in `src/factories/index.ts`.
+4. Deploy the backend, then assign the factory to an organization from the super admin page.
+
+In development, open `http://localhost:3002/?factory=<key>` to preview a factory without signing in.
+
+## Layout updates
 
 Hall 2 uses the same local axes and model scale as Hall 1. Positive Z runs toward the front
 door, and the Hall 2 plan keeps the supplied drawing's top-to-bottom orientation.

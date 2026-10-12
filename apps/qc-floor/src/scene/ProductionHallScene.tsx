@@ -1,11 +1,11 @@
-import { ContactShadows, Html, OrbitControls, useProgress } from "@react-three/drei";
+import { ContactShadows, Html, OrbitControls, useGLTF, useProgress } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { MOUSE, Vector3 } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { getMachineVisualScale } from "../floor/machine-catalog";
-import type { EquipmentPlacement, EquipmentStatus, HallLayout } from "../floor/types";
+import type { EquipmentPlacement, EquipmentStatus, HallLayout, MachineAsset } from "../floor/types";
 import { EquipmentModel } from "./EquipmentModel";
+import { FlowConnections } from "./FlowConnections";
 import { FacilityObject, HallArchitecture } from "./HallArchitecture";
 
 export type CameraMode = "overview" | "top" | "selected";
@@ -16,7 +16,10 @@ export interface CameraRequest {
   selectedLine: string | null;
 }
 
+type AssetCatalog = Record<string, MachineAsset>;
+
 interface SceneProps {
+  assets: AssetCatalog;
   cameraRequest: CameraRequest;
   layout: HallLayout;
   onSelect: (line: string) => void;
@@ -25,13 +28,15 @@ interface SceneProps {
 
 const STATUS_PRIORITY: EquipmentStatus[] = ["attention", "pending", "normal", "unknown"];
 
-function equipmentScale(equipment: EquipmentPlacement) {
-  return equipment.kind === "machine"
-    ? (equipment.visualScale ?? getMachineVisualScale(equipment.assetKey))
-    : 1;
+function equipmentScale(equipment: EquipmentPlacement, assets: AssetCatalog) {
+  if (equipment.kind !== "machine") {
+    return 1;
+  }
+  const asset = equipment.assetKey ? assets[equipment.assetKey] : undefined;
+  return equipment.visualScale ?? asset?.visualScale ?? 1;
 }
 
-function lineBounds(layout: HallLayout, line: string) {
+function lineBounds(layout: HallLayout, assets: AssetCatalog, line: string) {
   const equipment = layout.equipment.filter(
     (item) => item.line === line && item.selectable !== false,
   );
@@ -40,7 +45,7 @@ function lineBounds(layout: HallLayout, line: string) {
   }
   const bounds = equipment.reduce(
     (current, item) => {
-      const scale = equipmentScale(item);
+      const scale = equipmentScale(item, assets);
       const rotation = item.rotationY ?? 0;
       const length = item.dimensions.length * scale;
       const width = item.dimensions.width * scale;
@@ -79,7 +84,15 @@ function lineBounds(layout: HallLayout, line: string) {
   };
 }
 
-function CameraDirector({ layout, request }: { layout: HallLayout; request: CameraRequest }) {
+function CameraDirector({
+  assets,
+  layout,
+  request,
+}: {
+  assets: AssetCatalog;
+  layout: HallLayout;
+  request: CameraRequest;
+}) {
   const { camera, invalidate } = useThree();
   const controls = useRef<OrbitControlsImpl>(null);
   const animation = useRef({
@@ -93,7 +106,7 @@ function CameraDirector({ layout, request }: { layout: HallLayout; request: Came
 
   useEffect(() => {
     const hallCenter = layout.center ?? [0, 0];
-    const selected = request.selectedLine ? lineBounds(layout, request.selectedLine) : null;
+    const selected = request.selectedLine ? lineBounds(layout, assets, request.selectedLine) : null;
     const target = selected
       ? new Vector3(selected.centerX, Math.min(selected.height * 0.45, 3.5), selected.centerZ)
       : new Vector3(hallCenter[0], 0.5, hallCenter[1]);
@@ -124,7 +137,7 @@ function CameraDirector({ layout, request }: { layout: HallLayout; request: Came
       toTarget: target,
     };
     invalidate();
-  }, [camera, invalidate, layout, request]);
+  }, [assets, camera, invalidate, layout, request]);
 
   useFrame((_, delta) => {
     const state = animation.current;
@@ -170,8 +183,16 @@ function SceneLoader() {
   );
 }
 
-function ProductionLineLabel({ layout, line }: { layout: HallLayout; line: string }) {
-  const group = lineBounds(layout, line);
+function ProductionLineLabel({
+  assets,
+  layout,
+  line,
+}: {
+  assets: AssetCatalog;
+  layout: HallLayout;
+  line: string;
+}) {
+  const group = lineBounds(layout, assets, line);
   if (!group) {
     return null;
   }
@@ -188,13 +209,19 @@ function ProductionLineLabel({ layout, line }: { layout: HallLayout; line: strin
   );
 }
 
-function HallContents({ layout, onSelect, selectedLine }: Omit<SceneProps, "cameraRequest">) {
+function HallContents({
+  assets,
+  layout,
+  onSelect,
+  selectedLine,
+}: Omit<SceneProps, "cameraRequest">) {
   const [hoveredLine, setHoveredLine] = useState<string | null>(null);
   const labeledLine = hoveredLine ?? selectedLine;
 
   return (
     <>
       <HallArchitecture layout={layout} />
+      <FlowConnections layout={layout} />
       {layout.equipment.map((equipment) => {
         if (equipment.kind === "facility") {
           return (
@@ -206,8 +233,13 @@ function HallContents({ layout, onSelect, selectedLine }: Omit<SceneProps, "came
             />
           );
         }
+        const asset = equipment.assetKey ? assets[equipment.assetKey] : undefined;
+        if (!asset) {
+          throw new Error(`Machine ${equipment.id} has no asset in this factory`);
+        }
         return (
           <EquipmentModel
+            asset={asset}
             equipment={equipment}
             key={equipment.id}
             onHoverLine={setHoveredLine}
@@ -219,7 +251,9 @@ function HallContents({ layout, onSelect, selectedLine }: Omit<SceneProps, "came
           />
         );
       })}
-      {labeledLine ? <ProductionLineLabel layout={layout} line={labeledLine} /> : null}
+      {labeledLine ? (
+        <ProductionLineLabel assets={assets} layout={layout} line={labeledLine} />
+      ) : null}
       <ContactShadows
         blur={2.2}
         far={13}
@@ -233,6 +267,12 @@ function HallContents({ layout, onSelect, selectedLine }: Omit<SceneProps, "came
 }
 
 export function ProductionHallScene(props: SceneProps) {
+  useEffect(() => {
+    for (const asset of Object.values(props.assets)) {
+      useGLTF.preload(asset.modelUrl);
+    }
+  }, [props.assets]);
+
   return (
     <Canvas
       camera={{ far: 240, fov: 37, near: 0.1, position: [43, 49, 66] }}
@@ -261,12 +301,13 @@ export function ProductionHallScene(props: SceneProps) {
       />
       <Suspense fallback={<SceneLoader />}>
         <HallContents
+          assets={props.assets}
           layout={props.layout}
           onSelect={props.onSelect}
           selectedLine={props.selectedLine}
         />
       </Suspense>
-      <CameraDirector layout={props.layout} request={props.cameraRequest} />
+      <CameraDirector assets={props.assets} layout={props.layout} request={props.cameraRequest} />
     </Canvas>
   );
 }

@@ -1,8 +1,9 @@
 import { api } from "@flavoneer/backend/api";
+import { isFactoryBaseKey } from "@flavoneer/backend/factory-bases";
 import { useConvexAuth, useQuery } from "convex/react";
-import { Box, Languages, Moon, PanelTopOpen, RotateCcw, Sun } from "lucide-react";
+import { Box, Factory, Languages, Moon, PanelTopOpen, RotateCcw, Sun } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { PRODUCTION_HALLS, type ProductionHallId } from "./floor/factory-layout";
+import { FACTORY_BASES } from "./factories";
 import { applyLiveStatuses } from "./floor/live-data";
 import { useI18n } from "./lib/i18n";
 import {
@@ -15,6 +16,11 @@ import { SideRail } from "./ui/SideRail";
 
 type Theme = "light" | "dark";
 const ACTIVE_ORGANIZATION_STORAGE_KEY = "food-rd-lab-active-organization";
+// Development only: preview any factory with ?factory=<key>, even signed out.
+const previewFactoryParam = import.meta.env.DEV
+  ? new URLSearchParams(window.location.search).get("factory")
+  : null;
+const PREVIEW_FACTORY_KEY = isFactoryBaseKey(previewFactoryParam) ? previewFactoryParam : null;
 
 function App() {
   const { language, setLanguage, t } = useI18n();
@@ -29,7 +35,7 @@ function App() {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
-  const [activeHallId, setActiveHallId] = useState<ProductionHallId>("hall1");
+  const [activeHallId, setActiveHallId] = useState<string | null>(null);
   const [cameraRequest, setCameraRequest] = useState<CameraRequest>({
     mode: "overview",
     nonce: 0,
@@ -57,6 +63,17 @@ function App() {
     activeOrganization ? { organizationId: activeOrganization._id, now } : "skip",
   );
 
+  const assignedFactoryKey = useQuery(
+    api.factoryBases.getForOrganization,
+    activeOrganization && !PREVIEW_FACTORY_KEY
+      ? { organizationId: activeOrganization._id }
+      : "skip",
+  );
+  const factoryKey = PREVIEW_FACTORY_KEY ?? assignedFactoryKey;
+  const factory = factoryKey ? FACTORY_BASES[factoryKey] : null;
+  const activeHall =
+    factory?.halls.find((hall) => hall.id === activeHallId) ?? factory?.halls[0] ?? null;
+
   useEffect(() => {
     if (activeOrganization) {
       window.localStorage.setItem(ACTIVE_ORGANIZATION_STORAGE_KEY, activeOrganization._id);
@@ -69,10 +86,10 @@ function App() {
   }, [activeOrganization, requestedOrganizationId]);
 
   const activeLayout = useMemo(
-    () => applyLiveStatuses(PRODUCTION_HALLS[activeHallId], overview),
-    [activeHallId, overview],
+    () => (activeHall ? applyLiveStatuses(activeHall.layout, overview) : null),
+    [activeHall, overview],
   );
-  const hallName = t(activeHallId);
+  const hallName = activeHall?.name[language] ?? t("factoryFloor");
   const dataState = authLoading
     ? ("loading" as const)
     : !isAuthenticated
@@ -82,6 +99,7 @@ function App() {
         : !activeOrganization
           ? ("noWorkspace" as const)
           : ("live" as const);
+  const floorState = factory || dataState === "live" ? ("loading" as const) : dataState;
   const updatedLabel =
     dataState === "live" && overview
       ? new Intl.DateTimeFormat(language === "ar" ? "ar-PS" : "en", {
@@ -96,7 +114,7 @@ function App() {
 
   const selectedEquipment = useMemo(
     () =>
-      selectedLine
+      selectedLine && activeLayout
         ? activeLayout.equipment.filter(
             (equipment) => equipment.line === selectedLine && equipment.selectable !== false,
           )
@@ -120,8 +138,8 @@ function App() {
     }
   };
 
-  const selectHall = (hallId: ProductionHallId) => {
-    if (hallId === activeHallId) {
+  const selectHall = (hallId: string) => {
+    if (hallId === activeHall?.id) {
       return;
     }
     setActiveHallId(hallId);
@@ -183,62 +201,74 @@ function App() {
         </header>
 
         <section className="hall-workspace" aria-label={hallName}>
-          <div className="canvas-panel">
-            <ProductionHallScene
-              cameraRequest={cameraRequest}
-              layout={activeLayout}
-              onSelect={selectLine}
-              selectedLine={selectedLine}
-            />
+          {factory && activeHall && activeLayout ? (
+            <>
+              <div className="canvas-panel">
+                <ProductionHallScene
+                  assets={factory.assets}
+                  cameraRequest={cameraRequest}
+                  layout={activeLayout}
+                  onSelect={selectLine}
+                  selectedLine={selectedLine}
+                />
 
-            <div className="canvas-heading">
-              <span className="canvas-heading__icon">
-                <Box aria-hidden="true" size={20} />
-              </span>
-              <span>
-                <strong>{hallName}</strong>
-              </span>
+                <div className="canvas-heading">
+                  <span className="canvas-heading__icon">
+                    <Box aria-hidden="true" size={20} />
+                  </span>
+                  <span>
+                    <strong>{hallName}</strong>
+                  </span>
+                </div>
+
+                {factory.halls.length > 1 ? (
+                  <fieldset className="hall-switcher">
+                    <legend className="visually-hidden">{t("switchHall")}</legend>
+                    {factory.halls.map((hall, index) => (
+                      <button
+                        aria-label={hall.name[language]}
+                        aria-pressed={activeHall.id === hall.id}
+                        data-active={activeHall.id === hall.id || undefined}
+                        key={hall.id}
+                        onClick={() => selectHall(hall.id)}
+                        type="button"
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </fieldset>
+                ) : null}
+
+                <div className="view-controls" aria-label={t("overview")} role="toolbar">
+                  <button onClick={() => requestCamera("overview", null)} type="button">
+                    <RotateCcw aria-hidden="true" size={17} />
+                    <span>{t("resetView")}</span>
+                  </button>
+                  <button onClick={() => requestCamera("top", null)} type="button">
+                    <PanelTopOpen aria-hidden="true" size={17} />
+                    <span>{t("topView")}</span>
+                  </button>
+                </div>
+
+                <div className="canvas-footer">
+                  <span className="canvas-footer__hint">{t("dragHint")}</span>
+                </div>
+              </div>
+
+              <Inspector
+                dataState={dataState}
+                layout={activeLayout}
+                onSelect={selectLine}
+                overview={overview}
+                selected={selectedEquipment}
+              />
+            </>
+          ) : (
+            <div className="canvas-panel floor-empty" role="status">
+              <Factory aria-hidden="true" size={28} />
+              <strong>{t(floorState)}</strong>
             </div>
-
-            <fieldset className="hall-switcher">
-              <legend className="visually-hidden">{t("switchHall")}</legend>
-              {(["hall1", "hall2"] as const).map((hallId, index) => (
-                <button
-                  aria-label={t(hallId)}
-                  aria-pressed={activeHallId === hallId}
-                  data-active={activeHallId === hallId || undefined}
-                  key={hallId}
-                  onClick={() => selectHall(hallId)}
-                  type="button"
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </fieldset>
-
-            <div className="view-controls" aria-label={t("overview")} role="toolbar">
-              <button onClick={() => requestCamera("overview", null)} type="button">
-                <RotateCcw aria-hidden="true" size={17} />
-                <span>{t("resetView")}</span>
-              </button>
-              <button onClick={() => requestCamera("top", null)} type="button">
-                <PanelTopOpen aria-hidden="true" size={17} />
-                <span>{t("topView")}</span>
-              </button>
-            </div>
-
-            <div className="canvas-footer">
-              <span className="canvas-footer__hint">{t("dragHint")}</span>
-            </div>
-          </div>
-
-          <Inspector
-            dataState={dataState}
-            layout={activeLayout}
-            onSelect={selectLine}
-            overview={overview}
-            selected={selectedEquipment}
-          />
+          )}
         </section>
       </main>
     </div>

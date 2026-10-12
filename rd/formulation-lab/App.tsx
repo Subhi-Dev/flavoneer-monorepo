@@ -21,7 +21,6 @@ import Login from "./pages/login";
 import Materials from "./pages/materials";
 import ProductionLineRecordDetail from "./pages/production-line-record-detail";
 import ProductionLineRecords from "./pages/production-line-records";
-import ProductionMonitoring from "./pages/production-monitoring";
 import QcFloorHandoff from "./pages/qc-floor-handoff";
 import QualityReports from "./pages/quality-reports";
 import ReportDetails from "./pages/report-details";
@@ -106,10 +105,6 @@ const App: React.FC = () => {
             <Route
               element={<LabSampleSubmission />}
               path="/quality/lab-samples"
-            />
-            <Route
-              element={<ProductionMonitoring />}
-              path="/quality/production-monitoring"
             />
             <Route
               element={<ProductionLineRecords />}
