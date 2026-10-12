@@ -14,8 +14,7 @@ const messages = {
   en: {
     appName: "Flavoneer",
     qualityControl: "Quality control",
-    hall1: "Production hall 1",
-    hall2: "Production hall 2",
+    factoryFloor: "Factory floor",
     hallSubtitle: "Live equipment map",
     overview: "Overview",
     records: "QC records",
@@ -67,8 +66,7 @@ const messages = {
   ar: {
     appName: "فلافونير",
     qualityControl: "مراقبة الجودة",
-    hall1: "صالة الإنتاج 1",
-    hall2: "صالة الإنتاج 2",
+    factoryFloor: "أرضية المصنع",
     hallSubtitle: "خريطة المعدات المباشرة",
     overview: "نظرة عامة",
     records: "سجلات الجودة",

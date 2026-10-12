@@ -322,6 +322,24 @@ summary:focus-visible {
   position: relative;
 }
 
+.floor-empty {
+  align-items: center;
+  background: var(--cream);
+  color: var(--copy);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  grid-column: 1 / -1;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.floor-empty strong {
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
 .canvas-panel canvas {
   display: block;
 }

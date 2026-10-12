@@ -1,14 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
-  hotUpdaterBundleDocumentValidator,
-  hotUpdaterBundlePatchDocumentValidator,
-} from "./hotUpdaterValidators";
-import {
   auditLogMetaValidator,
   batchCodeFormatValidator,
   equipmentStatusValidator,
   equipmentTypeValidator,
+  factoryBaseKeyValidator,
   formulationStateValidator,
   inviteRoleValidator,
   inviteStatusValidator,
@@ -222,10 +219,7 @@ export default defineSchema({
     sortOrder: v.number(),
     onFail: v.optional(
       v.object({
-        action: v.union(
-          v.literal("redirect_dispose"),
-          v.literal("report_reason"),
-        ),
+        action: v.union(v.literal("redirect_dispose"), v.literal("report_reason")),
         reasonPrompt: v.optional(v.string()),
       }),
     ),
@@ -392,10 +386,7 @@ export default defineSchema({
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   })
-    .index("by_categoryCode_normalizedInsNumber", [
-      "categoryCode",
-      "normalizedInsNumber",
-    ])
+    .index("by_categoryCode_normalizedInsNumber", ["categoryCode", "normalizedInsNumber"])
     .index("by_normalizedInsNumber", ["normalizedInsNumber"])
     .index("by_foodCategoryId", ["foodCategoryId"]),
 
@@ -435,11 +426,7 @@ export default defineSchema({
     nextSequence: v.number(),
     updatedAt: v.number(),
     updatedBy: v.string(),
-  }).index("by_organizationId_and_sampleType_and_year", [
-    "organizationId",
-    "sampleType",
-    "year",
-  ]),
+  }).index("by_organizationId_and_sampleType_and_year", ["organizationId", "sampleType", "year"]),
 
   labSampleSubmissions: defineTable({
     organizationId: v.id("organizations"),
@@ -458,14 +445,8 @@ export default defineSchema({
     submittedByName: v.string(),
     createdAt: v.number(),
   })
-    .index("by_organizationId_and_sampleNumber", [
-      "organizationId",
-      "sampleNumber",
-    ])
-    .index("by_organizationId_and_productionNumber", [
-      "organizationId",
-      "productionNumber",
-    ])
+    .index("by_organizationId_and_sampleNumber", ["organizationId", "sampleNumber"])
+    .index("by_organizationId_and_productionNumber", ["organizationId", "productionNumber"])
     .index("by_organizationId_and_projectId_and_sampledAt", [
       "organizationId",
       "projectId",
@@ -497,11 +478,7 @@ export default defineSchema({
     durationString: v.optional(v.string()),
     data: v.record(v.string(), v.number()),
     status: v.optional(
-      v.union(
-        v.literal("completed"),
-        v.literal("failed"),
-        v.literal("In Progress"),
-      ),
+      v.union(v.literal("completed"), v.literal("failed"), v.literal("In Progress")),
     ),
     failureReason: v.optional(v.string()),
     currentPhaseIndex: v.optional(v.number()),
@@ -517,10 +494,7 @@ export default defineSchema({
       }),
     ),
     stepLogs: v.optional(
-      v.record(
-        v.string(),
-        v.object({ startTime: v.number(), observation: v.string() }),
-      ),
+      v.record(v.string(), v.object({ startTime: v.number(), observation: v.string() })),
     ),
     runOutcome: v.optional(runOutcomeValidator),
     image: v.optional(v.string()),
@@ -575,70 +549,14 @@ export default defineSchema({
     updatedBy: v.string(),
   }).index("by_organizationId", ["organizationId"]),
 
-  // Organization-scoped 3D production-line layouts. Child records keep the
-  // scene extensible without growing a single unbounded layout document.
-  factoryLayouts: defineTable({
+  // Which factory folder in apps/qc-floor/src/factories an organization's
+  // 3D floor uses. The layout itself lives in code next to its models.
+  organizationFactoryBases: defineTable({
     organizationId: v.id("organizations"),
-    name: v.string(),
-    version: v.number(),
-    createdAt: v.number(),
-    createdBy: v.string(),
+    factoryKey: factoryBaseKeyValidator,
     updatedAt: v.number(),
     updatedBy: v.string(),
   }).index("by_organizationId", ["organizationId"]),
-
-  factoryLayoutMachines: defineTable({
-    layoutId: v.id("factoryLayouts"),
-    organizationId: v.id("organizations"),
-    machineKey: v.string(),
-    assetKey: factoryMachineAssetKeyValidator,
-    label: v.string(),
-    color: v.string(),
-    positionX: v.number(),
-    positionY: v.number(),
-    positionZ: v.number(),
-    rotationY: v.number(),
-    scale: v.number(),
-    sortOrder: v.number(),
-    visible: v.boolean(),
-    updatedAt: v.number(),
-  })
-    .index("by_layoutId", ["layoutId"])
-    .index("by_layoutId_and_machineKey", ["layoutId", "machineKey"])
-    .index("by_organizationId", ["organizationId"]),
-
-  factoryLayoutConnections: defineTable({
-    layoutId: v.id("factoryLayouts"),
-    organizationId: v.id("organizations"),
-    connectionKey: v.string(),
-    kind: factoryConnectionKindValidator,
-    fromMachineKey: v.string(),
-    toMachineKey: v.string(),
-    color: v.string(),
-    height: v.number(),
-    sortOrder: v.number(),
-    visible: v.boolean(),
-    updatedAt: v.number(),
-  })
-    .index("by_layoutId", ["layoutId"])
-    .index("by_organizationId", ["organizationId"]),
-
-  factoryLayoutZones: defineTable({
-    layoutId: v.id("factoryLayouts"),
-    organizationId: v.id("organizations"),
-    zoneKey: v.string(),
-    label: v.string(),
-    color: v.string(),
-    positionX: v.number(),
-    positionZ: v.number(),
-    width: v.number(),
-    depth: v.number(),
-    sortOrder: v.number(),
-    visible: v.boolean(),
-    updatedAt: v.number(),
-  })
-    .index("by_layoutId", ["layoutId"])
-    .index("by_organizationId", ["organizationId"]),
 
   qualityReportConfigurations: defineTable({
     organizationId: v.id("organizations"),
@@ -670,11 +588,7 @@ export default defineSchema({
   })
     .index("by_organizationId_and_productId", ["organizationId", "productId"])
     .index("by_organizationId_and_status", ["organizationId", "status"])
-    .index("by_organizationId_and_productId_and_status", [
-      "organizationId",
-      "productId",
-      "status",
-    ]),
+    .index("by_organizationId_and_productId_and_status", ["organizationId", "productId", "status"]),
 
   productionLineSpecificationLimits: defineTable({
     specificationId: v.id("productionLineSpecifications"),
@@ -684,10 +598,7 @@ export default defineSchema({
     maximum: v.number(),
     target: v.optional(v.number()),
     minimumReadingCount: v.number(),
-  }).index("by_specificationId_and_readingKey", [
-    "specificationId",
-    "readingKey",
-  ]),
+  }).index("by_specificationId_and_readingKey", ["specificationId", "readingKey"]),
 
   productionLineReadings: defineTable({
     recordId: v.id("productionLineRecords"),
@@ -842,9 +753,7 @@ export default defineSchema({
     firstSubmittedAt: v.optional(v.number()),
     lastSubmittedAt: v.optional(v.number()),
     lastReviewedAt: v.optional(v.number()),
-    firstReviewDecision: v.optional(
-      v.union(v.literal("approved"), v.literal("returned")),
-    ),
+    firstReviewDecision: v.optional(v.union(v.literal("approved"), v.literal("returned"))),
     returnedCount: v.number(),
     totalReadingCount: v.number(),
     withinLimitReadingCount: v.number(),
@@ -858,10 +767,7 @@ export default defineSchema({
     requiredReadingRequirementCount: v.number(),
   })
     .index("by_recordId", ["recordId"])
-    .index("by_organizationId_and_inspectionAt", [
-      "organizationId",
-      "inspectionAt",
-    ])
+    .index("by_organizationId_and_inspectionAt", ["organizationId", "inspectionAt"])
     .index("by_organizationId_and_status_and_inspectionAt", [
       "organizationId",
       "status",
@@ -903,10 +809,7 @@ export default defineSchema({
   })
     .index("by_sourceReadingId", ["sourceReadingId"])
     .index("by_recordId", ["recordId"])
-    .index("by_organizationId_and_inspectionAt", [
-      "organizationId",
-      "inspectionAt",
-    ])
+    .index("by_organizationId_and_inspectionAt", ["organizationId", "inspectionAt"])
     .index("by_organizationId_and_readingKey_and_inspectionAt", [
       "organizationId",
       "readingKey",
@@ -933,10 +836,7 @@ export default defineSchema({
     hasNote: v.optional(v.boolean()),
   })
     .index("by_recordId_and_cycleNumber", ["recordId", "cycleNumber"])
-    .index("by_organizationId_and_submittedAt", [
-      "organizationId",
-      "submittedAt",
-    ])
+    .index("by_organizationId_and_submittedAt", ["organizationId", "submittedAt"])
     .index("by_organizationId_and_qcUserId_and_submittedAt", [
       "organizationId",
       "qcUserId",
@@ -971,10 +871,7 @@ export default defineSchema({
   })
     .index("by_labReportId", ["labReportId"])
     .index("by_sampleSubmissionId", ["sampleSubmissionId"])
-    .index("by_organizationId_and_reportCreatedAt", [
-      "organizationId",
-      "reportCreatedAt",
-    ])
+    .index("by_organizationId_and_reportCreatedAt", ["organizationId", "reportCreatedAt"])
     .index("by_organizationId_and_sampledAt", ["organizationId", "sampledAt"])
     .index("by_organizationId_and_projectId_and_reportCreatedAt", [
       "organizationId",
@@ -1000,20 +897,13 @@ export default defineSchema({
   })
     .index("by_sourceTestResultId", ["sourceTestResultId"])
     .index("by_labReportId", ["labReportId"])
-    .index("by_organizationId_and_reportCreatedAt", [
-      "organizationId",
-      "reportCreatedAt",
-    ]),
+    .index("by_organizationId_and_reportCreatedAt", ["organizationId", "reportCreatedAt"]),
 
   qualityReportingMigrationIssues: defineTable({
     organizationId: v.id("organizations"),
     labReportId: v.id("labReports"),
     lotNumber: v.string(),
-    reason: v.union(
-      v.literal("invalid_batch"),
-      v.literal("no_match"),
-      v.literal("ambiguous"),
-    ),
+    reason: v.union(v.literal("invalid_batch"), v.literal("no_match"), v.literal("ambiguous")),
     candidateSampleIds: v.array(v.id("labSampleSubmissions")),
     createdAt: v.number(),
   })
@@ -1077,10 +967,7 @@ export default defineSchema({
   })
     .index("by_featureFlagId", ["featureFlagId"])
     .index("by_organizationId", ["organizationId"])
-    .index("by_featureFlagId_and_organizationId", [
-      "featureFlagId",
-      "organizationId",
-    ]),
+    .index("by_featureFlagId_and_organizationId", ["featureFlagId", "organizationId"]),
 
   platformAuditLogs: defineTable({
     actorId: v.string(),
@@ -1183,10 +1070,7 @@ export default defineSchema({
     sortOrder: v.number(),
     onFail: v.optional(
       v.object({
-        action: v.union(
-          v.literal("redirect_dispose"),
-          v.literal("report_reason"),
-        ),
+        action: v.union(v.literal("redirect_dispose"), v.literal("report_reason")),
         reasonPrompt: v.optional(v.string()),
       }),
     ),

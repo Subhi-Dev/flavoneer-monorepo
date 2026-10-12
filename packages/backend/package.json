@@ -11,6 +11,7 @@
     "./data-model": {
       "types": "./convex/_generated/dataModel.d.ts"
     },
+    "./factory-bases": "./lib/factory-bases.ts",
     "./ingredient-dependencies": "./lib/ingredients/dependencies.ts",
     "./regulatory": "./convex/regulatoryHelpers.ts",
     "./system-role-access": "./lib/system-role-access.ts",

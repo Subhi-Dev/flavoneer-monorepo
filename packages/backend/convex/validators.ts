@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { FACTORY_BASE_KEYS } from "../lib/factory-bases";
 
 // ─── Shared Enum Validators ──────────────────────────
 
@@ -987,3 +988,7 @@ export const projectVersionReturnValidator = v.object({
   releasedAt: v.optional(v.string()),
   formattedId: v.optional(v.string()),
 });
+
+export const factoryBaseKeyValidator = v.union(
+  ...FACTORY_BASE_KEYS.map((key) => v.literal(key)),
+);

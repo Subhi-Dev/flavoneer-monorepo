@@ -1,5 +1,5 @@
-import { getMachineVisualScale, MACHINE_CATALOG } from "./machine-catalog";
-import type { EquipmentPlacement, EquipmentStatus, HallLayout } from "./types";
+import type { EquipmentPlacement, EquipmentStatus, HallLayout } from "../../floor/types";
+import { getMachineVisualScale, MACHINE_CATALOG } from "./assets";
 
 const PLAN_SCALE_X = 2 / 3;
 const PLAN_SCALE_Z = 0.65;
@@ -548,10 +548,3 @@ export const PRODUCTION_HALL_2: HallLayout = {
     },
   ],
 };
-
-export const PRODUCTION_HALLS = {
-  hall1: PRODUCTION_HALL_1,
-  hall2: PRODUCTION_HALL_2,
-} as const;
-
-export type ProductionHallId = keyof typeof PRODUCTION_HALLS;

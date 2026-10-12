@@ -22,10 +22,7 @@ export async function getSuperAdminIdentity(
     .withIndex("by_authUserId", (query) => query.eq("authUserId", authUser._id))
     .unique();
 
-  if (
-    !user?.isCreator ||
-    user.email?.trim().toLowerCase() !== SUPER_ADMIN_EMAIL
-  ) {
+  if (user?.isSuperAdmin !== true) {
     return null;
   }
 

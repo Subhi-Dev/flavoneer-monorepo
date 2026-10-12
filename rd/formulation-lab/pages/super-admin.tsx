@@ -26,17 +26,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { FactoryLayoutAdminView } from "../components/super-admin/FactoryLayoutAdminView";
+import { FactoryBaseAdminView } from "../components/super-admin/FactoryBaseAdminView";
 import { Switch } from "../components/ui/Switch";
 
 type AdminOverview = FunctionReturnType<typeof api.superAdmin.getOverview>;
 type OrganizationRow = AdminOverview["organizations"][number];
 type FeatureFlagRow = AdminOverview["featureFlags"][number];
-type AdminTab =
-  | "organizations"
-  | "featureFlags"
-  | "factoryLayouts"
-  | "activity";
+type AdminTab = "organizations" | "featureFlags" | "factoryBases" | "activity";
 type StatusFilter = "all" | "active" | "suspended";
 
 const panelClass =
@@ -1344,9 +1340,9 @@ const SuperAdmin = () => {
       count: overview.totals.activeFlags,
     },
     {
-      id: "factoryLayouts",
+      id: "factoryBases",
       icon: Factory,
-      label: t("factory_layout_admin_tab"),
+      label: t("factory_base_admin_tab"),
     },
     { id: "activity", icon: Activity, label: t("super_admin_activity") },
   ];
@@ -1470,8 +1466,8 @@ const SuperAdmin = () => {
           {activeTab === "featureFlags" && (
             <FeatureFlagsView overview={overview} />
           )}
-          {activeTab === "factoryLayouts" && (
-            <FactoryLayoutAdminView organizations={overview.organizations} />
+          {activeTab === "factoryBases" && (
+            <FactoryBaseAdminView organizations={overview.organizations} />
           )}
           {activeTab === "activity" && (
             <ActivityView logs={overview.auditLogs} />
